@@ -1,0 +1,5 @@
+{
+  "name": "Koronosori (کرنوسری)",
+  "description": "A musical scale calculator for Persian Dastgahs. Select a root note and scale type (e.g., Shur, Mahur, Segah) to instantly see the notes.",
+  "requestFramePermissions": []
+}
