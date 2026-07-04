@@ -7,6 +7,11 @@ import {
   CHAHARGAH_INTERVALS,
   NAVA_INTERVALS,
   RAST_PANJGAH_INTERVALS,
+  ABOUATA_INTERVALS,
+  BAYAT_TORK_INTERVALS,
+  AFSHARI_INTERVALS,
+  DASHTI_INTERVALS,
+  BAYAT_ESFAHAN_INTERVALS,
   ROOT_OPTIONS, 
   NOTE_BASE_INDICES, 
   ACCIDENTAL_OFFSETS 
@@ -35,6 +40,11 @@ export const getScaleNotes = (rootName: string, rootAccidental: string, type: Sc
     case ScaleType.CHAHARGAH: intervals = CHAHARGAH_INTERVALS; break;
     case ScaleType.NAVA: intervals = NAVA_INTERVALS; break;
     case ScaleType.RAST_PANJGAH: intervals = RAST_PANJGAH_INTERVALS; break;
+    case ScaleType.ABOUATA: intervals = ABOUATA_INTERVALS; break;
+    case ScaleType.BAYAT_TORK: intervals = BAYAT_TORK_INTERVALS; break;
+    case ScaleType.AFSHARI: intervals = AFSHARI_INTERVALS; break;
+    case ScaleType.DASHTI: intervals = DASHTI_INTERVALS; break;
+    case ScaleType.BAYAT_ESFAHAN: intervals = BAYAT_ESFAHAN_INTERVALS; break;
     default: intervals = MAHUR_INTERVALS;
   }
 
@@ -61,25 +71,16 @@ export const getScaleNotes = (rootName: string, rootAccidental: string, type: Sc
     let noteString = '';
     
     switch (diff) {
-      case 0:
-        noteString = expectedBaseName;
-        break;
-      case 1:
-        noteString = `${expectedBaseName} سری`;
-        break;
-      case 2:
-        noteString = `${expectedBaseName} دیز`;
-        break;
-      case -1:
-        noteString = `${expectedBaseName} کرن`;
-        break;
-      case -2:
-        noteString = `${expectedBaseName} بمل`;
-        break;
+      case 0: noteString = expectedBaseName; break;
+      case 1: noteString = `${expectedBaseName} سری`; break;
+      case 2: noteString = `${expectedBaseName} دیز`; break;
+      case 3: noteString = `${expectedBaseName} دیز سری`; break;
+      case 4: noteString = `${expectedBaseName} دوبل دیز`; break;
+      case -1: noteString = `${expectedBaseName} کرن`; break;
+      case -2: noteString = `${expectedBaseName} بمل`; break;
+      case -3: noteString = `${expectedBaseName} بمل کرن`; break;
+      case -4: noteString = `${expectedBaseName} دوبل بمل`; break;
       default:
-        // Fallback: If the note is too far from the expected base (e.g. > 2 quarter tones),
-        // we fallback to the raw note name from the scale definition.
-        // This handles edge cases where a scale might skip a letter name or have a very large interval.
         noteString = QUARTER_TONE_SCALE[noteIndex];
     }
     notes.push(noteString);
