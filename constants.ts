@@ -1,6 +1,6 @@
 import { NoteName } from './types';
 
-// The Quarter Tone scale (24 steps per octave)
+// The Quarter Tone scale (24 steps per octave based on Col. Alinaqi Vaziri's theory)
 export const QUARTER_TONE_SCALE: string[] = [
   'دو', 'دو سری', 'دو دیز', 'ر کرن', 
   'ر', 'ر سری', 'ر دیز', 'می کرن', 
@@ -24,18 +24,34 @@ export const NOTE_BASE_INDICES: Record<string, number> = {
   'دو': 0, 'ر': 4, 'می': 8, 'فا': 10, 'سل': 14, 'لا': 18, 'سی': 22
 };
 
-export const MAHUR_INTERVALS = [0, 4, 8, 10, 14, 18, 22];
+// 7 Primary Persian Dastgahs Intervals (24-TET quarter-tone steps)
 export const SHUR_INTERVALS = [0, 3, 6, 10, 14, 16, 20];
-export const HOMAYOUN_INTERVALS = [0, 3, 8, 10, 14, 16, 20];
 export const SEGAH_INTERVALS = [0, 3, 7, 10, 14, 17, 21];
 export const CHAHARGAH_INTERVALS = [0, 3, 8, 10, 14, 17, 22];
+export const HOMAYOUN_INTERVALS = [0, 3, 8, 10, 14, 16, 20];
+export const MAHUR_INTERVALS = [0, 4, 8, 10, 14, 18, 22];
 export const NAVA_INTERVALS = [0, 4, 7, 10, 14, 17, 20];
 export const RAST_PANJGAH_INTERVALS = [0, 4, 8, 10, 14, 18, 22];
-export const ABOUATA_INTERVALS = [0, 3, 6, 10, 14, 16, 20];
-export const BAYAT_TORK_INTERVALS = [0, 4, 8, 11, 14, 18, 21];
-export const AFSHARI_INTERVALS = [0, 3, 6, 10, 14, 17, 20];
-export const DASHTI_INTERVALS = [0, 3, 6, 10, 14, 16, 20];
-export const BAYAT_ESFAHAN_INTERVALS = [0, 4, 6, 10, 14, 16, 22];
+
+// Fast O(1) interval lookup map for maximum performance
+export const DASTGAH_INTERVALS_MAP: Record<string, number[]> = {
+  'شور': SHUR_INTERVALS,
+  'سه گاه': SEGAH_INTERVALS,
+  'چهارگاه': CHAHARGAH_INTERVALS,
+  'همایون': HOMAYOUN_INTERVALS,
+  'ماهور': MAHUR_INTERVALS,
+  'نوا': NAVA_INTERVALS,
+  'راست پنجگاه': RAST_PANJGAH_INTERVALS,
+};
+
+// Archived 5 Avazes intervals for future theoretical verification
+export const ARCHIVED_AVAZ_INTERVALS: Record<string, number[]> = {
+  'ابوعطا': [0, 4, 6, 10, 14, 17, 20],
+  'بیات ترک': [0, 4, 8, 11, 14, 18, 21],
+  'افشاری': [0, 3, 6, 10, 14, 17, 20],
+  'دشتی': [0, 4, 6, 10, 14, 16, 20],
+  'بیات اصفهان': [0, 4, 6, 10, 14, 16, 22]
+};
 
 export const ROOT_OPTIONS = ['دو', 'ر', 'می', 'فا', 'سل', 'لا', 'سی'];
 
@@ -52,29 +68,29 @@ export const ALPHABET_NOTES: Record<string, string> = {
 export const TRANSLATIONS = {
   fa: {
     appTitle: 'کُرنوسُری',
-    instruction: 'برای شروع محاسبه\nگام مورد نظر و نت پایه را انتخاب کنید',
-    scaleLabel: 'دستگاه / گام',
-    rootLabel: 'نام نت پایه',
-    accLabel: 'علامت',
+    instruction: 'برای محاسبه فواصل و درجات\nدستگاه مورد نظر و نت پایه را انتخاب کنید',
+    scaleLabel: 'دستگاه موسیقی',
+    rootLabel: 'نت پایه (تونیک)',
+    accLabel: 'علامت عرضی',
     copied: 'کپی شد',
     copyTooltip: 'کپی کردن نت‌ها',
-    playScale: 'شنیدن گام',
+    playScale: 'شنیدن گام دستگاه',
     stopScale: 'توقف صدا',
-    footer: 'ساخته شده با عشق به موسیقی ایرانی ❤️',
+    footer: 'هفت دستگاه اصیل موسیقی ایرانی ❤️ کُرنوسُری',
     aboutLink: 'درباره ما',
-    aboutTitle: 'درباره ما',
-    aboutDesc: '• کُرنوسُری روایتی است از عدد و نغمه؛ ابزاری دقیق و کاربردی برای محاسبه فواصل و درجات گام‌های موسیقی اصیل ایرانی.\n• این برنامه با هدف کمک به هنرجویان، نوازندگان و پژوهشگران موسیقی طراحی شده تا بتوانند ساختار دستگاه‌ها و گام‌ها را با دقت بیشتری تحلیل و بررسی کنند.\n• سال‌ها پیش، کلنل علینقی خان وزیری با نگاهی نو، علم را با هنر ایرانی درآمیخت و بنیانی علمی برای بررسی و آموزش موسیقی ایران پایه‌گذاری کرد؛ ما نیز در کُرنوسُری، با الهام از همان نگاه، کوشیده‌ایم پلی میان فناوری امروز و میراث ارزشمند موسیقی ایرانی بسازیم. این برنامه را با احترام، به ایشان پیشکش می‌کنیم.\n• پیش از این، نسخه‌ای اولیه از چنین ابزاری برای اندروید به همت آقای فاضل مستخدمین حسینی طراحی و منتشر شده بود. ایده و تلاش ارزشمند ایشان، انگیزه‌بخش آغاز این مسیر برای ما بوده است؛ بدین‌وسیله مراتب قدردانی خود را اعلام می‌داریم.\n• این نسخه از کُرنوسُری با بهره‌گیری از هوش مصنوعی Gemini توسعه یافته است.\n• ناظر فنی و کیفی: عارف هاشمی راد   @arefashemi',
+    aboutTitle: 'درباره کُرنوسُری',
+    aboutDesc: '• کُرنوسُری روایتی است از عدد و نغمه؛ ابزاری دقیق و تخصصی برای محاسبه فواصل و درجات هفت دستگاه اصلی موسیقی ایرانی (شور، سه‌گاه، چهارگاه، ماهور، همایون، نوا، راست‌پنجگاه).\n• این برنامه با هدف کمک به هنرجویان، نوازندگان و پژوهشگران موسیقی اصیل ایرانی طراحی شده تا بتوانند ساختار دستگاه‌ها و درجات ردیف را با نهایت دقت بررسی کنند.\n• سال‌ها پیش، کلنل علینقی خان وزیری با نگاهی نو، علم را با هنر ایرانی درآمیخت و بنیانی علمی برای آموزش موسیقی ایران پایه‌گذاری کرد؛ ما نیز در کُرنوسُری، با الهام از همان نگاه، کوشیده‌ایم پلی میان فناوری امروز و میراث ارزشمند موسیقی ایرانی بسازیم.\n• پیش از این، نسخه‌ای اولیه از چنین ابزاری برای اندروید به همت آقای فاضل مستخدمین حسینی طراحی و منتشر شده بود. ایده و تلاش ارزشمند ایشان، انگیزه‌بخش آغاز این مسیر برای ما بوده است؛ بدین‌وسیله مراتب قدردانی خود را اعلام می‌داریم.\n• این نسخه از کُرنوسُری با بهره‌گیری از هوش مصنوعی توسعه یافته است.\n• ناظر فنی و کیفی: عارف هاشمی راد   @arefashemi',
     vaziriLink: 'درباره وزیری',
     vaziriTitle: 'کلنل علینقی خان وزیری',
-    vaziriDesc: 'کلنل علینقی وزیری (۱۲۶۵-۱۳۵۸) موسیقی‌دان برجسته و بنیان‌گذار تئوری نوین موسیقی ایران است که با ابداع علامت‌های «سُری» و «کُرُن»، راه را برای نگارش و آموزش آکادمیک موسیقی ایرانی هموار کرد.\n\nاو با تقسیم‌بندی دقیق فواصل، ساختاری علمی برای بررسی دستگاه‌ها و آوازها ارائه داد که امروزه مبنای آموزش در هنرستان‌های موسیقی است.',
+    vaziriDesc: 'کلنل علینقی وزیری (۱۲۶۵-۱۳۵۸) موسیقی‌دان برجسته و بنیان‌گذار تئوری نوین موسیقی ایران است که با ابداع علامت‌های «سُری» و «کُرُن»، راه را برای نگارش و آموزش آکادمیک موسیقی ایرانی هموار کرد.\n\nاو با تقسیم‌بندی گام به ۲۴ ربع‌پرده مساوی، ساختاری علمی برای بررسی دقیق هفت دستگاه موسیقی ایران ارائه داد که امروزه مبنای آموزش در هنرستان‌های موسیقی است.',
     backBtn: 'بازگشت',
-    supportBtn: 'حمایت از ما',
+    supportBtn: 'حمایت از توسعه',
     supportTitle: 'حمایت از کُرنوسُری',
-    supportDesc: 'کُرنوسُری همیشه رایگان و بدون تبلیغات باقی می‌ماند. حمایت‌های شما مستقیماً برای بهبود مستمر برنامه، تحقیق پیرامون تئوری موسیقی علمی و سرپا نگه‌داشتن سرورها هزینه می‌شود.',
+    supportDesc: 'کُرنوسُری همیشه رایگان، مستقل و بدون تبلیغات باقی می‌ماند. حمایت‌های شما مستقیماً برای بهبود مستمر برنامه، پژوهش‌های تئوری موسیقی و زیرساخت‌ها هزینه می‌شود.',
     supportTier1: '☕️ یک فنجان قهوه',
     supportTier1Desc: 'حمایتی کوچک اما دلگرم‌کننده',
-    supportTier2: '🚀 حمایت از توسعه',
-    supportTier2Desc: 'کمک به بهبود و پایداری برنامه',
+    supportTier2: '🚀 توسعه و پایداری',
+    supportTier2Desc: 'کمک به بهبود ویژگی‌ها و عملکرد',
     supportTier3: '💎 حامی ویژه',
     supportTier3Desc: 'مبلغ دلخواه برای همراهی بیشتر',
     shahedLabel: 'نت شاهد',
@@ -83,20 +99,25 @@ export const TRANSLATIONS = {
     tetrachordLabel: 'دانگ‌ها (تتراکوردها)',
     firstTetrachord: 'دانگ اول',
     secondTetrachord: 'دانگ دوم',
-    goushehsLabel: 'گوشه‌های مهم',
+    goushehsLabel: 'گوشه‌های کلیدی ردیف',
     continuousLabel: 'پیوسته (متصل)',
     disjunctLabel: 'منفصل',
     noMotaghayyer: 'ندارد',
     favoritesTab: 'نشان‌شده‌ها',
     calculatorTab: 'محاسبه‌گر',
-    emptyFavorites: 'هیچ گامی نشان نشده است.',
-    emptyFavoritesDesc: 'گام‌های مورد علاقه خود را با فشردن دکمه ستاره (⭐️) ذخیره کنید تا در این بخش نمایش داده شوند.',
+    emptyFavorites: 'هیچ دستگاهی نشان نشده است.',
+    emptyFavoritesDesc: 'دستگاه‌های مورد علاقه خود را با فشردن دکمه ستاره (⭐️) ذخیره کنید تا در این بخش نمایش داده شوند.',
     removeFavorite: 'حذف',
     favoriteAdded: 'به نشان‌شده‌ها اضافه شد',
     favoriteRemoved: 'از نشان‌شده‌ها حذف شد',
     scales: { 
-      'شور': 'شور', 'سه گاه': 'سه گاه', 'چهارگاه': 'چهارگاه', 'ماهور': 'ماهور', 'همایون': 'همایون', 'نوا': 'نوا', 'راست پنجگاه': 'راست پنجگاه',
-      'ابوعطا': 'ابوعطا', 'بیات ترک': 'بیات ترک', 'افشاری': 'افشاری', 'دشتی': 'دشتی', 'بیات اصفهان': 'بیات اصفهان'
+      'شور': 'شور',
+      'سه گاه': 'سه‌گاه',
+      'چهارگاه': 'چهارگاه',
+      'ماهور': 'ماهور',
+      'همایون': 'همایون',
+      'نوا': 'نوا',
+      'راست پنجگاه': 'راست‌پنجگاه'
     },
     accidentals: { 
       'بکار': 'بکار', 
@@ -111,26 +132,21 @@ export const TRANSLATIONS = {
     },
     notes: { 'دو': 'دو', 'ر': 'ر', 'می': 'می', 'فا': 'فا', 'سل': 'سل', 'لا': 'لا', 'سی': 'سی' },
     scaleDescriptions: {
-      'شور': 'شور به عنوان «مادر موسیقی ایران» شناخته می‌شود. فواصل آن شامل ربع‌پرده (کرن) است و فضایی حزن‌انگیز اما باوقار دارد. آوازهای ابوعطا، بیات ترک، افشاری و دشتی از متعلقات آن هستند.',
-      'سه گاه': 'سه گاه گامی است که بیشترین استفاده از ربع‌پرده‌ها را دارد. حسی از رهایی و آرامش را القا می‌کند و در موسیقی محلی ایران بسیار پرکاربرد است.',
-      'چهارگاه': 'چهارگاه گامی حماسی، پرانرژی و در عین حال عاطفی است. وجود دو فاصله دوم بیش‌افزوده (سه ربع‌پرده) به آن شخصیتی بسیار متمایز و شرقی می‌بخشد.',
-      'ماهور': 'ماهور شباهت زیادی به گام بزرگ (Major) در موسیقی کلاسیک غربی دارد. حسی شاد، باشکوه و امیدوارانه منتقل می‌کند و برای قطعات رزمی و جشن‌ها مناسب است.',
-      'همایون': 'همایون گامی مجلل، اشرافی و در عین حال غمگین است. فاصله دوم بیش‌افزوده در آن حسی خاص ایجاد می‌کند. آواز بیات اصفهان از متعلقات این دستگاه است.',
-      'نوا': 'نوا گامی آرام، عرفانی و متفکرانه است. فواصل آن شباهت زیادی به شور دارد اما ایست و شاهد آن متفاوت است که شخصیتی مستقل به آن می‌دهد.',
-      'راست پنجگاه': 'راست پنجگاه از نظر فواصل شبیه به ماهور است اما امکانات بسیار گسترده‌ای برای مرکب‌خوانی و سفر به سایر دستگاه‌ها فراهم می‌کند.',
-      'ابوعطا': 'آوازی از متعلقات شور که حسی حزین و در عین حال عارفانه دارد. فواصل آن با شور یکسان است اما شاهد و ایست متفاوتی دارد.',
-      'بیات ترک': 'آوازی شاد و باوقار از متعلقات شور. به دلیل نزدیکی به ماهور، حسی از امید و گشایش را منتقل می‌کند.',
-      'افشاری': 'آوازی متفکرانه و ناله‌گونه که از نظر فواصل شباهت زیادی به شور دارد اما در درجات بالا شخصیت مستقلی پیدا می‌کند.',
-      'دشتی': 'یکی از زیباترین و غمگین‌ترین آوازهای موسیقی ایران که از متعلقات شور است و در موسیقی محلی بسیار پرکاربرد است.',
-      'بیات اصفهان': 'آوازی مجلل و اشرافی که از متعلقات همایون است. فواصل آن شباهت زیادی به گام کوچک (Minor) غربی دارد.'
+      'شور': 'دستگاه شور؛ مادر موسیقی دستگاهی ایران. فواصل آن شامل ریزپرده‌های شاخص (کرن) بوده و فضایی عمیق، حزن‌انگیز و در عین حال پرصلابت دارد.',
+      'سه گاه': 'دستگاه سه‌گاه؛ دارای بیشترین کاربرد ربع‌پرده‌ها در درجات پایه. حسی سرشار از رهایی، شوق معنوی و نجابت ایرانی را تداعی می‌کند.',
+      'چهارگاه': 'دستگاه چهارگاه؛ باشکوه، حماسی و پرحرارت. با داشتن دو فاصله دوم بیش‌افزوده متوالی در دانگ‌های منفصل، هویتی فوق‌العاده قاطع و رزمی دارد.',
+      'ماهور': 'دستگاه ماهور؛ بیانگر شادی، وقار، امید و عظمت. شباهت فواصلی با گام ماژور غربی با تحریرها و حس غنی موسیقی اصیل ایرانی.',
+      'همایون': 'دستگاه همایون؛ مجلل، اشرافی و عاطفی. فواصل آن توازنی بی‌نظیر میان حزن عاشقانه و شکوه شهریاری خلق می‌کند.',
+      'نوا': 'دستگاه نوا؛ عمیق، متفکرانه، عارفانه و آرامش‌بخش. دستگاهی خلوت‌گزین که فواصلی نزدیک به شور دارد اما با هویتی کاملاً مستقل و منحصربه‌فرد.',
+      'راست پنجگاه': 'دستگاه راست‌پنجگاه؛ از کهن‌ترین و غنی‌ترین دستگاه‌های موسیقی ایران با امکانات وسیع مرکب‌خوانی و سفرهای مدال به تمام دستگاه‌های دیگر.'
     },
     changelogLink: 'بروزرسانی‌ها',
-    changelogTitle: 'تاریخچه تغییرات و بروزرسانی‌ها',
-    currentVersionLabel: 'نسخه فعلی شما',
+    changelogTitle: 'تاریخچه تغییرات و نسخه جدید',
+    currentVersionLabel: 'نسخه فعال شما',
     latestVersionLabel: 'آخرین نسخه منتشرشده',
     checkUpdatesBtn: 'بررسی بروزرسانی',
     checkingUpdates: 'در حال بررسی...',
-    upToDateMsg: 'برنامه شما کاملاً بروز است! 🎉',
+    upToDateMsg: 'برنامه شما به آخرین نسخه بروز است! 🎉',
     updateAvailableMsg: 'نسخه جدیدتری در دسترس است!',
     applyUpdateBtn: 'نصب خودکار نسخه جدید',
     updatingMsg: 'در حال نصب و بروزرسانی...',
@@ -138,51 +154,56 @@ export const TRANSLATIONS = {
   },
   en: {
     appTitle: 'Koronosori',
-    instruction: 'To calculate the scale degrees,\nselect the scale type and root note.',
-    scaleLabel: 'Scale / Dastgah',
-    rootLabel: 'Root Note',
+    instruction: 'To calculate scale degrees & intervals,\nselect a Dastgah and root note.',
+    scaleLabel: '7 Main Dastgahs',
+    rootLabel: 'Root Note (Tonic)',
     accLabel: 'Accidental',
     copied: 'Copied',
     copyTooltip: 'Copy notes',
-    playScale: 'Play Scale',
+    playScale: 'Play Dastgah Scale',
     stopScale: 'Stop Playback',
-    footer: 'Made with love for Persian Music ❤️',
+    footer: '7 Primary Persian Dastgahs ❤️ Koronosori',
     aboutLink: 'About Us',
-    aboutTitle: 'About Us',
-    aboutDesc: '• Koronosori is a tale of numbers and melodies; A precise and practical tool for calculating intervals and degrees of authentic Persian musical scales.\n• This app is designed to help students, musicians, and music researchers analyze and study the structure of Dastgahs and scales with greater accuracy.\n• Years ago, Colonel Alinaghi Khan Vaziri, with a fresh perspective, blended science with Iranian art and laid a scientific foundation for the study and education of Persian music; In Koronosori, inspired by that same vision, we have tried to build a bridge between today\'s technology and the precious heritage of Persian music. We respectfully dedicate this app to him.\n• Previously, an initial version of such a tool for Android was designed and published by Mr. Fazel Mostakhdemin Hosseini. His valuable idea and effort have been the inspiring start of this journey for us; we hereby express our gratitude.\n• This version of Koronosori was developed using Gemini AI.\n• Technical and Quality Supervisor: Aref Hashemi Rad   @arefashemi',
+    aboutTitle: 'About Koronosori',
+    aboutDesc: '• Koronosori is a tale of numbers and melodies; A precise tool dedicated to calculating intervals and degrees of the 7 primary Dastgahs of Persian classical music (Shur, Segah, Chahargah, Mahur, Homayoun, Nava, Rast-Panjgah).\n• Designed to help music scholars, students, and performers explore academic Radif structures with microtonal accuracy.\n• In respectful dedication to Col. Alinaqi Vaziri who established the academic 24-quarter-tone theoretical foundation.\n• Technical and Quality Supervisor: Aref Hashemi Rad   @arefashemi',
     vaziriLink: 'About Vaziri',
-    vaziriTitle: 'Col. Alinaghi Khan Vaziri',
-    vaziriDesc: 'Colonel Alinaghi Vaziri (1887-1979) was a prominent musician and the founder of modern Persian music theory. By introducing the "Sori" and "Koron" symbols, he paved the way for the academic notation and education of Persian music.\n\nHis systematic approach to intervals provided a scientific framework for studying Dastgahs and Avazs, which remains the basis for education in music conservatories today.',
+    vaziriTitle: 'Col. Alinaqi Khan Vaziri',
+    vaziriDesc: 'Colonel Alinaqi Vaziri (1887-1979) was a pioneer who laid the scientific foundation for modern Persian music theory by introducing the Sori and Koron microtonal notation symbols.\n\nHis 24-TET division remains the cornerstone of education in classical Persian music conservatories today.',
     backBtn: 'Back',
-    supportBtn: 'Support Us',
+    supportBtn: 'Support Development',
     supportTitle: 'Support Koronosori',
-    supportDesc: 'Koronosori will always remain free and ad-free. Your support directly fuels continuous improvements, academic music theory research, and keeping our servers running.',
+    supportDesc: 'Koronosori is free and ad-free. Your support directly enables ongoing research, performance improvements, and server maintenance.',
     supportTier1: '☕️ Buy me a coffee',
-    supportTier1Desc: 'A small but heart-warming support',
-    supportTier2: '🚀 Support Development',
-    supportTier2Desc: 'Help improve and sustain the app',
+    supportTier1Desc: 'Small but heartwarming support',
+    supportTier2: '🚀 Development & Speed',
+    supportTier2Desc: 'Help improve features and performance',
     supportTier3: '💎 Special Patron',
-    supportTier3Desc: 'Custom amount for more support',
+    supportTier3Desc: 'Custom patronage to sustain the project',
     shahedLabel: 'Shahed Note',
     istLabel: 'Ist Note',
     motaghayyerLabel: 'Variable Note',
     tetrachordLabel: 'Tetrachords (Dangs)',
     firstTetrachord: 'First Dang',
     secondTetrachord: 'Second Dang',
-    goushehsLabel: 'Important Goushehs',
+    goushehsLabel: 'Key Radif Goushehs',
     continuousLabel: 'Conjoined (Continuous)',
     disjunctLabel: 'Disjunct',
     noMotaghayyer: 'None',
     favoritesTab: 'Favorites',
     calculatorTab: 'Calculator',
-    emptyFavorites: 'No favorited scales yet.',
-    emptyFavoritesDesc: 'Save your favorite scales by pressing the star button (⭐️) to see them here.',
+    emptyFavorites: 'No favorited Dastgahs yet.',
+    emptyFavoritesDesc: 'Save your favorite Dastgahs by clicking the star (⭐️) button to view them here.',
     removeFavorite: 'Remove',
     favoriteAdded: 'Added to favorites',
     favoriteRemoved: 'Removed from favorites',
     scales: { 
-      'شور': 'Shur', 'سه گاه': 'Segah', 'چهارگاه': 'Chahargah', 'ماهور': 'Mahur', 'همایون': 'Homayoun', 'نوا': 'Nava', 'راست پنجگاه': 'Rast-Panjgah',
-      'ابوعطا': 'Abouata', 'بیات ترک': 'Bayat-e Tork', 'افشاری': 'Afshari', 'دشتی': 'Dashti', 'بیات اصفهان': 'Bayat-e Esfahan'
+      'شور': 'Dastgah Shur',
+      'سه گاه': 'Dastgah Segah',
+      'چهارگاه': 'Dastgah Chahargah',
+      'ماهور': 'Dastgah Mahur',
+      'همایون': 'Dastgah Homayoun',
+      'نوا': 'Dastgah Nava',
+      'راست پنجگاه': 'Dastgah Rast-Panjgah'
     },
     accidentals: { 
       'بکار': 'Natural', 
@@ -197,30 +218,25 @@ export const TRANSLATIONS = {
     },
     notes: { 'دو': 'Do', 'ر': 'Re', 'می': 'Mi', 'فا': 'Fa', 'سل': 'Sol', 'لا': 'La', 'سی': 'Si' },
     scaleDescriptions: {
-      'شور': 'Shur is known as the "Mother of Persian Music." It features quarter-tones (Koron) and has a mournful yet dignified atmosphere. Many folk melodies are based on this Dastgah.',
-      'سه گاه': 'Segah is the scale that makes the most extensive use of quarter-tones. It conveys a sense of liberation and peace, and is very common in Iranian folk music.',
-      'چهارگاه': 'Chahargah is epic, energetic, and emotional. The presence of two augmented second intervals gives it a very distinct and oriental character.',
-      'ماهور': 'Mahur is very similar to the Major scale in Western classical music. It conveys a happy, grand, and hopeful feeling, suitable for festive pieces.',
-      'همایون': 'Homayoun is grand, aristocratic, and yet sad. The augmented second interval creates a unique atmosphere. Bayat-e Esfahan is a derivative of this Dastgah.',
-      'نوا': 'Nava is calm, mystical, and thoughtful. Its intervals are similar to Shur, but its tonic and characteristic notes give it an independent personality.',
-      'راست پنجگاه': 'Rast-Panjgah is similar to Mahur in terms of intervals but provides extensive possibilities for modulation to other Dastgahs.',
-      'ابوعطا': 'An Avaz belonging to Shur with a mournful yet mystical feel. Its intervals are identical to Shur but with different characteristic notes.',
-      'بیات ترک': 'A happy and dignified Avaz from Shur. Due to its proximity to Mahur, it conveys a sense of hope and openness.',
-      'افشاری': 'A thoughtful and plaintive Avaz that resembles Shur in intervals but develops an independent character in higher degrees.',
-      'دشتی': 'One of the most beautiful and saddest Avaz in Persian music, belonging to Shur and widely used in folk music.',
-      'بیات اصفهان': 'A grand and aristocratic Avaz belonging to Homayoun. Its intervals are similar to the Western Minor scale.'
+      'شور': 'Dastgah Shur: The "Mother of Persian Music". Features signature microtonal Koron intervals with a deep, mournful, yet noble atmosphere.',
+      'سه گاه': 'Dastgah Segah: Characterized by prominent quarter-tones on base degrees, evoking spiritual freedom and emotional longing.',
+      'چهارگاه': 'Dastgah Chahargah: Epic, energetic, and triumphant. Built with two consecutive augmented second intervals across disjunct tetrachords.',
+      'ماهور': 'Dastgah Mahur: Conveys grandeur, joy, and optimism. Shares structural interval similarities with Western Major but rich in Persian ornaments.',
+      'همایون': 'Dastgah Homayoun: Aristocratic, solemn, and deeply moving. Creates a magnificent blend of emotional pathos and majesty.',
+      'نوا': 'Dastgah Nava: Meditative, mystical, and serene. Contemplative atmosphere with distinct characteristic Shahed and Ist degrees.',
+      'راست پنجگاه': 'Dastgah Rast-Panjgah: One of the oldest and most versatile Dastgahs, opening pathways for modal journeys across the entire Radif.'
     },
     changelogLink: 'Updates',
     changelogTitle: 'Updates & Changelog',
-    currentVersionLabel: 'Your Version',
-    latestVersionLabel: 'Latest Version Available',
+    currentVersionLabel: 'Your Active Version',
+    latestVersionLabel: 'Latest Available Version',
     checkUpdatesBtn: 'Check for Updates',
     checkingUpdates: 'Checking...',
-    upToDateMsg: 'Your app is up to date! 🎉',
+    upToDateMsg: 'Your app is completely up to date! 🎉',
     updateAvailableMsg: 'A new version is available!',
     applyUpdateBtn: 'Install New Version',
     updatingMsg: 'Installing update...',
-    updateSuccessMsg: 'App updated to the latest version successfully!',
+    updateSuccessMsg: 'App updated successfully!',
   }
 };
 
@@ -239,7 +255,7 @@ export const SCALE_ACADEMIC_DATA: Record<string, AcademicInfo> = {
     istDegree: 1,
     motaghayyerDegree: 5,
     tetrachords_type: 'continuous',
-    goushehs_fa: ['درآمد', 'شهناز', 'قرچه', 'رضوی', 'حسینی', 'گریلی'],
+    goushehs_fa: ['درآمد', 'شهناz', 'قرچه', 'رضوی', 'حسینی', 'گریلی'],
     goushehs_en: ['Daramad', 'Shahnaz', 'Qaracheh', 'Razavi', 'Hoseyni', 'Gereyli']
   },
   'سه گاه': {
@@ -289,45 +305,5 @@ export const SCALE_ACADEMIC_DATA: Record<string, AcademicInfo> = {
     tetrachords_type: 'disjunct',
     goushehs_fa: ['نغمه', 'عشاق', 'زنگوله', 'بیات عجم', 'بحر نور', 'قرچه'],
     goushehs_en: ['Naghmeh', 'Oshaq', 'Zangouleh', 'Bayat-e Ajam', 'Bahr-e Noor', 'Qaracheh']
-  },
-  'ابوعطا': {
-    shahedDegree: 4,
-    istDegree: 1,
-    motaghayyerDegree: null,
-    tetrachords_type: 'continuous',
-    goushehs_fa: ['سیخی', 'حجاز', 'رامکلی', 'دستان', 'یتیمک'],
-    goushehs_en: ['Sikhi', 'Hejaz', 'Ramkali', 'Dastan', 'Yatimeh']
-  },
-  'بیات ترک': {
-    shahedDegree: 3,
-    istDegree: 1,
-    motaghayyerDegree: null,
-    tetrachords_type: 'continuous',
-    goushehs_fa: ['داد', 'فیلی', 'شکسته', 'جامه دران', 'مهربانی'],
-    goushehs_en: ['Dad', 'Fili', 'Shekasteh', 'Jameh-Daran', 'Mehrabani']
-  },
-  'افشاری': {
-    shahedDegree: 5,
-    istDegree: 1,
-    motaghayyerDegree: 5,
-    tetrachords_type: 'continuous',
-    goushehs_fa: ['عراق', 'جامه دران', 'مسیحی', 'قرائی', 'صدری'],
-    goushehs_en: ['Iraq', 'Jameh-Daran', 'Masihi', 'Qaraei', 'Sadri']
-  },
-  'دشتی': {
-    shahedDegree: 5,
-    istDegree: 1,
-    motaghayyerDegree: 5,
-    tetrachords_type: 'continuous',
-    goushehs_fa: ['دشتستانی', 'بیدگانی', 'چوپانی', 'غم‌انگیز', 'دیلمان'],
-    goushehs_en: ['Dashtestani', 'Bidgani', 'Choupani', 'Gham-Angiz', 'Deylaman']
-  },
-  'بیات اصفهان': {
-    shahedDegree: 4,
-    istDegree: 1,
-    motaghayyerDegree: null,
-    tetrachords_type: 'continuous',
-    goushehs_fa: ['بیات راجه', 'عشاق', 'شاه‌خطایی', 'سوز و گداز', 'جامه دران'],
-    goushehs_en: ['Bayat-e Rajeh', 'Oshaq', 'Shah-Khataei', 'Sooz-o-Ghodaz', 'Jameh-Daran']
   }
 };

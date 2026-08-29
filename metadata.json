@@ -1,5 +1,6 @@
 {
   "name": "Koronosori (کرنوسری)",
-  "description": "A musical scale calculator for Persian Dastgahs. Select a root note and scale type (e.g., Shur, Mahur, Segah) to instantly see the notes.",
-  "requestFramePermissions": []
+  "description": "محاسبه‌گر تخصصی فواصل و درجات هفت دستگاه اصلی موسیقی ایرانی (شور، سه‌گاه، چهارگاه، ماهور، همایون، نوا، راست‌پنجگاه) با کوک دقیق ربع‌پرده‌ای و تحلیل آکادمیک ردیف.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

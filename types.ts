@@ -1,17 +1,21 @@
 export enum ScaleType {
-  SHUR = 'Shur',
-  MAHUR = 'Mahur',
-  SEGAH = 'Segah',
-  CHAHARGAH = 'Chahargah',
-  HOMAYOUN = 'Homayoun',
-  NAVA = 'Nava',
-  RAST_PANJGAH = 'RastPanjgah',
-  ABOUATA = 'Abouata',
-  BAYAT_TORK = 'BayatTork',
-  AFSHARI = 'Afshari',
-  DASHTI = 'Dashti',
-  BAYAT_ESFAHAN = 'BayatEsfahan'
+  SHUR = 'شور',
+  SEGAH = 'سه گاه',
+  CHAHARGAH = 'چهارگاه',
+  MAHUR = 'ماهور',
+  HOMAYOUN = 'همایون',
+  NAVA = 'نوا',
+  RAST_PANJGAH = 'راست پنجگاه'
 }
+
+// Archived Avazes (حفظ در آرشیو برای نسخه‌های آتی در صورت نیاز به بازبینی محاسبات فواصل)
+// export enum ArchivedAvazType {
+//   ABOUATA = 'ابوعطا',
+//   BAYAT_TORK = 'بیات ترک',
+//   AFSHARI = 'افشاری',
+//   DASHTI = 'دشتی',
+//   BAYAT_ESFAHAN = 'بیات اصفهان'
+// }
 
 export type NoteName = string;
 
