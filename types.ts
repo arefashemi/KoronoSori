@@ -30,4 +30,5 @@ export interface FavoriteScale {
   root: string;
   accidental: string;
   scaleType: string;
+  note?: string; // Personal user note for this saved favorite
 }

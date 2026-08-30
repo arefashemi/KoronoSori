@@ -1,6 +1,10 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PianoKey } from './components/PianoKey';
+import { Metronome } from './components/Metronome';
+import { VaziriModal } from './components/VaziriModal';
+import { AboutModal } from './components/AboutModal';
+import { SupportModal } from './components/SupportModal';
 import { getScaleNotes } from './utils/musicTheory';
 import { ScaleType, FavoriteScale } from './types';
 import { 
@@ -37,16 +41,16 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<'fa' | 'en'>('fa');
   const [darkMode, setDarkMode] = useState(false);
   const [notation, setNotation] = useState<'solfege' | 'alphabet'>('solfege');
-  const [view, setView] = useState<'home' | 'about' | 'vaziri' | 'support' | 'favorites' | 'changelog'>('home');
+  const [view, setView] = useState<'home' | 'metronome' | 'about' | 'vaziri' | 'support' | 'favorites' | 'changelog'>('home');
   const [showScaleInfo, setShowScaleInfo] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [showAcademic, setShowAcademic] = useState(false);
 
   const [appVersion, setAppVersion] = useState<string>(() => {
     try {
-      return localStorage.getItem('koronosori_app_version') || '2.2.0';
+      return localStorage.getItem('koronosori_app_version') || '2.3.0';
     } catch {
-      return '2.2.0';
+      return '2.3.0';
     }
   });
 
@@ -55,7 +59,7 @@ const App: React.FC = () => {
   const handleCheckUpdates = useCallback(() => {
     setUpdateStatus('checking');
     setTimeout(() => {
-      if (appVersion === '2.2.0') {
+      if (appVersion === '2.3.0') {
         setUpdateStatus('up-to-date');
       } else {
         setUpdateStatus('update-available');
@@ -67,11 +71,11 @@ const App: React.FC = () => {
     setUpdateStatus('updating');
     setTimeout(() => {
       try {
-        localStorage.setItem('koronosori_app_version', '2.2.0');
+        localStorage.setItem('koronosori_app_version', '2.3.0');
       } catch (e) {
         // Local storage fallback
       }
-      setAppVersion('2.2.0');
+      setAppVersion('2.3.0');
       setUpdateStatus('success');
     }, 1600);
   }, []);
@@ -125,9 +129,18 @@ const App: React.FC = () => {
   const [favFilter, setFavFilter] = useState<string | null>(null);
   const [copiedFavId, setCopiedFavId] = useState<string | null>(null);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState<string>('');
+
+  const handleSaveNote = useCallback((id: string, noteText: string) => {
+    setFavorites(prev => prev.map(fav => fav.id === id ? { ...fav, note: noteText.trim() } : fav));
+    setEditingNoteId(null);
+    setEditingNoteText('');
+  }, []);
 
   // Audio Context and Playback system
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [isLooping, setIsLooping] = useState<boolean>(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const playbackTimeoutsRef = useRef<number[]>([]);
   const playbackIdRef = useRef<number>(0);
@@ -180,10 +193,10 @@ const App: React.FC = () => {
     osc.stop(ctx.currentTime + 0.45);
   }, [getAudioContext]);
 
-  // Fast auto-advance splash timer (1.8s) for maximum UX snappy response
+  // Smooth, stable auto-advance splash timer (2.8s) with graceful fade out
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1800);
-    return () => clearTimeout(timer);
+    const timer = window.setTimeout(() => setShowSplash(false), 2800);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const t = TRANSLATIONS[lang];
@@ -287,7 +300,10 @@ const App: React.FC = () => {
     if (resultNotes.length === 0) return;
     const octaveNote = resultNotes[0];
     const fullNotesList = [...resultNotes, octaveNote];
-    const textToCopy = `${displayLabels.displayScaleName} ${displayLabels.displayRoot}\n${lang === 'fa' ? 'سرکلید' : 'Key Signature'}: ${displayLabels.displayKeySignature}\n\n${fullNotesList.map(translateNote).join(' - ')}`;
+    const titleText = lang === 'fa' 
+      ? `${displayLabels.displayScaleName} ${displayLabels.displayRoot}`
+      : `${displayLabels.displayRoot} ${displayLabels.displayScaleName}`;
+    const textToCopy = `${titleText}\n${lang === 'fa' ? 'سرکلید' : 'Key Signature'}: ${displayLabels.displayKeySignature}\n\n${fullNotesList.map(translateNote).join(' - ')}`;
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -308,6 +324,7 @@ const App: React.FC = () => {
     });
     activeOscillatorsRef.current = [];
     setPlayingIndex(null);
+    setIsLooping(false);
   }, []);
 
   const getFavoriteLabel = useCallback((fav: FavoriteScale) => {
@@ -425,6 +442,7 @@ const App: React.FC = () => {
     stopPlayback();
     const currentId = ++playbackIdRef.current;
     setPlayingIndex(0);
+    setIsLooping(false);
 
     const rawIntervals = DASTGAH_INTERVALS_MAP[selectedScaleType] || MAHUR_INTERVALS;
     const fullIntervals = [...rawIntervals, 24];
@@ -497,6 +515,98 @@ const App: React.FC = () => {
     }
   }, [playingIndex, stopPlayback, selectedScaleType, selectedRoot, selectedAccidental, getAudioContext]);
 
+  const playScaleLoop = useCallback(() => {
+    if (isLooping) {
+      stopPlayback();
+      return;
+    }
+
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    stopPlayback();
+    const currentId = ++playbackIdRef.current;
+    setPlayingIndex(0);
+    setIsLooping(true);
+
+    const rawIntervals = DASTGAH_INTERVALS_MAP[selectedScaleType] || MAHUR_INTERVALS;
+    const fullIntervals = [...rawIntervals, 24];
+
+    let rootIndex = NOTE_BASE_INDICES[selectedRoot] ?? 0;
+    if (ACCIDENTAL_OFFSETS[selectedAccidental] !== undefined) {
+      rootIndex += ACCIDENTAL_OFFSETS[selectedAccidental];
+    }
+    rootIndex = (rootIndex % 24 + 24) % 24;
+
+    const noteDuration = 0.45;
+    const intervalBetweenNotes = 500;
+    const pauseBetweenCycles = 650;
+    const cycleTotalTime = fullIntervals.length * intervalBetweenNotes + pauseBetweenCycles;
+
+    const scheduleCycle = (cycleStartTimeOffset: number) => {
+      if (currentId !== playbackIdRef.current) return;
+
+      fullIntervals.forEach((intervalValue, idx) => {
+        const absoluteStep = rootIndex + intervalValue;
+        const freq = 261.63 * Math.pow(2, absoluteStep / 24);
+
+        const soundTimeout = window.setTimeout(() => {
+          if (currentId !== playbackIdRef.current) return;
+
+          const osc = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+
+          osc.connect(filter);
+          filter.connect(gainNode);
+          gainNode.connect(ctx.destination);
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1100, ctx.currentTime);
+          filter.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + noteDuration);
+
+          gainNode.gain.setValueAtTime(0, ctx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 0.05);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + noteDuration);
+
+          osc.start();
+          osc.stop(ctx.currentTime + noteDuration + 0.1);
+
+          activeOscillatorsRef.current.push(osc);
+        }, cycleStartTimeOffset + idx * intervalBetweenNotes);
+
+        const uiTimeout = window.setTimeout(() => {
+          if (currentId !== playbackIdRef.current) return;
+          setPlayingIndex(idx);
+        }, cycleStartTimeOffset + idx * intervalBetweenNotes);
+
+        playbackTimeoutsRef.current.push(soundTimeout, uiTimeout);
+      });
+
+      const cycleEndTimeout = window.setTimeout(() => {
+        if (currentId !== playbackIdRef.current) return;
+        setPlayingIndex(null);
+        // Next cycle
+        scheduleCycle(0);
+      }, cycleStartTimeOffset + fullIntervals.length * intervalBetweenNotes + pauseBetweenCycles);
+
+      playbackTimeoutsRef.current.push(cycleEndTimeout);
+    };
+
+    const runPlayback = () => {
+      scheduleCycle(0);
+    };
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(runPlayback);
+    } else {
+      runPlayback();
+    }
+  }, [isLooping, stopPlayback, selectedScaleType, selectedRoot, selectedAccidental, getAudioContext]);
+
   useEffect(() => {
     const warmUpAudio = () => {
       if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
@@ -527,14 +637,15 @@ const App: React.FC = () => {
 
   return (
     <>
-      {/* Refined Minimalist Persian Splash Screen matching App Color Palette */}
+      {/* Refined Minimalist Persian Splash Screen */}
       <AnimatePresence>
         {showSplash && (
           <motion.div
+            key="app-splash"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
-            className={`fixed inset-0 z-[100] ${darkMode ? 'dark bg-gray-950 text-white' : 'bg-brand-gray text-brand-dark'} flex flex-col items-center justify-between p-6 sm:p-8 select-none transition-colors duration-300`}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: 'easeInOut' }}
+            className={`fixed inset-0 z-[100] ${darkMode ? 'dark bg-gray-950 text-white' : 'bg-brand-gray text-brand-dark'} flex flex-col items-center justify-between p-6 sm:p-8 select-none`}
             onClick={() => setShowSplash(false)}
           >
             {/* Soft Ambient Brand Glow */}
@@ -542,11 +653,11 @@ const App: React.FC = () => {
 
             <div className="w-full"></div>
 
-            {/* Clean Center Identity (No busy animations, pure elegant brand aesthetic) */}
+            {/* Clean Center Identity with stable layout to prevent jumping */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
               className="text-center space-y-4 flex flex-col items-center justify-center my-auto z-10"
             >
               {/* Brand Emblem */}
@@ -556,28 +667,32 @@ const App: React.FC = () => {
                 </svg>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-brand-dark dark:text-white">
                   کُرنوسُری
                 </h1>
-                <p className="text-xs font-bold text-brand-dark/50 dark:text-gray-400">
-                  محاسبه‌گر فواصل هفت دستگاه موسیقی ایرانی
+                <p className="text-sm font-black text-brand-dark/70 dark:text-gray-300">
+                  محاسبه درجات گام موسیقی ایرانی
                 </p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-dark/5 dark:bg-white/10 text-[11px] font-bold text-brand-dark/60 dark:text-lime-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-lime"></span>
+                  <span>روایت عدد و نغمه</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-lime"></span>
+                </div>
               </div>
             </motion.div>
 
-            {/* Bottom Progress Loading Bar & Version */}
+            {/* Bottom Progress Loading Bar & Version synchronized with 2.8s */}
             <div className="w-full max-w-xs space-y-2.5 mb-4 z-10 flex flex-col items-center">
               <div className="w-full h-1.5 bg-brand-dark/10 dark:bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: '0%' }}
                   animate={{ width: '100%' }}
-                  transition={{ duration: 1.6, ease: 'linear' }}
+                  transition={{ duration: 2.5, ease: 'easeInOut' }}
                   className="h-full bg-brand-lime dark:bg-lime-500 rounded-full"
                 />
               </div>
-              <div className="flex items-center justify-between w-full text-[11px] font-bold text-brand-dark/40 dark:text-gray-500">
-                <span>۷ دستگاه اصیل</span>
+              <div className="flex items-center justify-center w-full text-[11px] font-bold text-brand-dark/40 dark:text-gray-500">
                 <span className="font-mono">نسخه {appVersion}</span>
               </div>
             </div>
@@ -601,7 +716,7 @@ const App: React.FC = () => {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setNotation(n => n === 'solfege' ? 'alphabet' : 'solfege')} 
-                className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[10px] font-black tracking-wider text-brand-dark dark:text-white flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[11px] font-black tracking-wide text-brand-dark dark:text-white flex items-center gap-1.5 cursor-pointer"
                 title={lang === 'fa' ? 'تغییر سیستم نام‌گذاری نت‌ها' : 'Change note naming system'}
               >
                 <svg className="w-3.5 h-3.5 text-brand-dark dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -609,57 +724,92 @@ const App: React.FC = () => {
                 </svg>
                 <span>
                   {notation === 'solfege' 
-                    ? (lang === 'fa' ? 'سلفژ (دو ر می)' : 'Solfege') 
-                    : (lang === 'fa' ? 'حروف (A B C)' : 'Letters')}
+                    ? (lang === 'fa' ? 'دو ر می' : 'Do Re Mi') 
+                    : 'A B C'}
                 </span>
               </motion.button>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setDarkMode(!darkMode)} 
-                className="px-2.5 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-xs text-brand-dark dark:text-white"
+                className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-brand-dark dark:text-white flex items-center justify-center cursor-pointer transition-all duration-200"
+                title={darkMode ? (lang === 'fa' ? 'حالت روز' : 'Light mode') : (lang === 'fa' ? 'حالت شب' : 'Dark mode')}
+                aria-label="Toggle theme"
               >
-                {darkMode ? '☀️' : '🌙'}
+                {darkMode ? (
+                  /* Sun icon - clean, modern, monochrome */
+                  <svg className="w-4 h-4 text-brand-dark dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  /* Moon icon - clean, modern, monochrome */
+                  <svg className="w-4 h-4 text-brand-dark dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
               </motion.button>
             </div>
 
-            <motion.h1 
-              onClick={() => setView('home')}
-              className="text-2xl font-black tracking-tighter text-brand-dark dark:text-white cursor-pointer select-none"
-            >
-              {t.appTitle}
-            </motion.h1>
+            <div className="flex flex-col items-end">
+              <motion.h1 
+                onClick={() => setView('home')}
+                className="text-2xl font-black tracking-tighter text-brand-dark dark:text-white cursor-pointer select-none leading-tight"
+              >
+                {t.appTitle}
+              </motion.h1>
+              <span className="text-[9.5px] font-bold text-brand-dark/40 dark:text-gray-500 tracking-normal select-none">
+                {t.appSlogan}
+              </span>
+            </div>
           </div>
 
           {/* Navigation Tabs */}
-          {(view === 'home' || view === 'favorites') && (
-            <div className="w-full flex bg-white/70 dark:bg-gray-900/50 p-1 rounded-2xl border border-white dark:border-gray-800 shadow-sm mb-2.5 shrink-0 transition-colors duration-300">
+          {(view === 'home' || view === 'metronome' || view === 'favorites') && (
+            <div className="w-full grid grid-cols-3 bg-white/70 dark:bg-gray-900/50 p-1 rounded-2xl border border-white dark:border-gray-800 shadow-sm mb-2.5 shrink-0 transition-colors duration-300 gap-1">
               <button 
                 onClick={() => setView('home')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                className={`h-9 px-1 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none ${
                   view === 'home' 
                     ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm' 
                     : 'text-brand-dark/50 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
                 }`}
               >
-                {t.calculatorTab}
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span className="whitespace-nowrap leading-none">{t.calculatorTab}</span>
               </button>
+              
+              <button 
+                onClick={() => setView('metronome')}
+                className={`h-9 px-1 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none ${
+                  view === 'metronome' 
+                    ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm' 
+                    : 'text-brand-dark/50 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
+                }`}
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="whitespace-nowrap leading-none">{t.metronomeTab}</span>
+              </button>
+
               <button 
                 onClick={() => setView('favorites')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                className={`h-9 px-1 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none ${
                   view === 'favorites' 
                     ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm' 
                     : 'text-brand-dark/50 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
                 }`}
               >
-                <svg className={`w-3.5 h-3.5 ${view === 'favorites' ? 'text-amber-400' : 'text-brand-dark/40 dark:text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3.5 h-3.5 shrink-0 ${view === 'favorites' ? 'text-amber-400' : 'text-brand-dark/40 dark:text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                 </svg>
-                <span>{t.favoritesTab}</span>
+                <span className="whitespace-nowrap leading-none">{t.favoritesTab}</span>
                 {favorites.length > 0 && (
-                  <span className={`inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-black rounded-full leading-none transition-colors ${
+                  <span className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[9px] font-black rounded-full leading-none font-mono tabular-nums shrink-0 ${
                     view === 'favorites' 
-                      ? 'bg-brand-lime text-brand-dark dark:bg-lime-500 dark:text-white' 
-                      : 'bg-brand-dark/10 text-brand-dark dark:bg-white/10 dark:text-white'
+                      ? 'bg-brand-lime text-brand-dark dark:bg-lime-400 dark:text-brand-dark font-bold' 
+                      : 'bg-brand-dark/15 text-brand-dark dark:bg-white/20 dark:text-white'
                   }`}>
                     {favorites.length}
                   </span>
@@ -760,28 +910,29 @@ const App: React.FC = () => {
      
                   {/* Results Section */}
                   <section className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5 rounded-[2rem] shadow-xl border border-white dark:border-gray-800 flex-grow flex flex-col justify-between transition-colors duration-300">
-                    <div className="flex items-center justify-between gap-3 pb-3 border-b border-brand-dark/5 dark:border-white/5">
-                      {/* Play Button */}
-                      <div className="shrink-0 flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2.5 pb-3 border-b border-brand-dark/5 dark:border-white/5">
+                      {/* Left: Play & Auto Loop Sequence Buttons (Stacked Vertically) */}
+                      <div className="shrink-0 flex flex-col gap-1.5 items-center justify-center">
+                        {/* Play Single Run Button */}
                         <motion.button 
                           whileHover={{ scale: 1.08 }}
                           whileTap={{ scale: 0.92 }}
                           onClick={playScale}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group shadow-md cursor-pointer ${
-                            playingIndex !== null 
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all group shadow-sm cursor-pointer ${
+                            playingIndex !== null && !isLooping
                               ? 'bg-rose-500 text-white shadow-rose-500/30' 
                               : 'bg-brand-lime text-brand-dark hover:bg-brand-dark hover:text-white dark:hover:bg-white dark:hover:text-brand-dark shadow-brand-lime/20'
                           }`}
-                          title={playingIndex !== null ? t.stopScale : t.playScale}
+                          title={playingIndex !== null && !isLooping ? t.stopScale : t.playScale}
                         >
                           <AnimatePresence mode="wait">
-                            {playingIndex !== null ? (
+                            {playingIndex !== null && !isLooping ? (
                               <motion.svg 
                                 key="stop" 
                                 initial={{ scale: 0 }} 
                                 animate={{ scale: 1 }} 
                                 exit={{ scale: 0 }} 
-                                className="w-4 h-4" 
+                                className="w-3.5 h-3.5" 
                                 fill="currentColor" 
                                 viewBox="0 0 24 24"
                               >
@@ -793,7 +944,7 @@ const App: React.FC = () => {
                                 initial={{ scale: 0 }} 
                                 animate={{ scale: 1 }} 
                                 exit={{ scale: 0 }} 
-                                className="w-4 h-4 group-hover:scale-110 transition-transform" 
+                                className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" 
                                 fill="currentColor" 
                                 viewBox="0 0 24 24"
                               >
@@ -802,30 +953,54 @@ const App: React.FC = () => {
                             )}
                           </AnimatePresence>
                         </motion.button>
+
+                        {/* Auto Loop Playback Button */}
+                        <motion.button 
+                          whileHover={{ scale: 1.08 }}
+                          whileTap={{ scale: 0.92 }}
+                          onClick={playScaleLoop}
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all group shadow-sm cursor-pointer ${
+                            isLooping 
+                              ? 'bg-amber-500 text-white shadow-amber-500/30 ring-2 ring-amber-400/50' 
+                              : 'bg-white dark:bg-gray-800 text-brand-dark/60 dark:text-gray-300 hover:text-brand-dark dark:hover:text-white border border-gray-100 dark:border-gray-700 hover:bg-brand-lime/20'
+                          }`}
+                          title={isLooping ? t.stopLoopScale : t.loopScale}
+                        >
+                          <svg 
+                            className={`w-4 h-4 transition-transform ${isLooping ? 'animate-spin text-white' : 'group-hover:rotate-45'}`} 
+                            style={{ animationDuration: '4s' }}
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </motion.button>
                       </div>
  
-                      {/* Center: Scale Name & Key Signature */}
-                      <div className="flex-grow text-center flex flex-col gap-0.5">
+                      {/* Center: Scale Name & Key Signature with plenty of spacious room */}
+                      <div className="flex-grow text-center flex flex-col justify-center px-1">
                         <div className="text-xl sm:text-2xl font-black text-brand-dark dark:text-white tracking-tighter leading-tight select-none">
                           {lang === 'fa' ? <>{displayLabels.displayScaleName} {displayLabels.displayRoot}</> : <>{displayLabels.displayRoot} {displayLabels.displayScaleName}</>}
                         </div>
-                        <div className="text-[10px] font-bold text-brand-dark/40 dark:text-gray-500 flex items-center justify-center gap-1">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
-                          <span>{lang === 'fa' ? 'سرکلید:' : 'Key Sig:'}</span>
-                          <span className="text-brand-dark/60 dark:text-gray-400">{displayLabels.displayKeySignature}</span>
+                        <div className="text-[11px] sm:text-xs font-bold text-brand-dark/60 dark:text-gray-400 flex items-center justify-center gap-1 mt-1 leading-normal">
+                          <svg className="w-3.5 h-3.5 text-brand-dark/40 dark:text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                          <span>
+                            {lang === 'fa' ? `سرکلید: ${displayLabels.displayKeySignature}` : `Key Sig: ${displayLabels.displayKeySignature}`}
+                          </span>
                         </div>
                       </div>
  
-                      {/* Right Actions: Copy & Favorite */}
-                      <div className="shrink-0 flex items-center gap-1.5">
+                      {/* Right Actions: Favorite & Copy (Stacked Vertically) */}
+                      <div className="shrink-0 flex flex-col gap-1.5 items-center justify-center">
                         <motion.button 
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.08 }}
+                          whileTap={{ scale: 0.92 }}
                           onClick={toggleFavorite} 
-                          className={`w-10 h-10 rounded-xl border shadow-sm flex items-center justify-center group transition-colors cursor-pointer ${
+                          className={`w-9 h-9 rounded-xl border shadow-sm flex items-center justify-center group transition-colors cursor-pointer ${
                             isCurrentFavorite
                               ? "bg-amber-400 border-amber-400 text-brand-dark dark:bg-amber-500 dark:border-amber-500"
-                              : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-brand-dark/30 dark:text-gray-500 hover:text-amber-500 dark:hover:text-amber-400"
+                              : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-brand-dark/40 dark:text-gray-400 hover:text-amber-500 dark:hover:text-amber-400"
                           }`}
                           title={isCurrentFavorite ? t.favoriteRemoved : t.favoriteAdded}
                         >
@@ -839,19 +1014,19 @@ const App: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499c.172-.34.693-.34.865 0l2.457 4.981 5.495.8a.498.498 0 01.277.85l-3.978 3.876 1.002 5.474a.498.498 0 01-.723.526l-4.912-2.583-4.912 2.583a.498.498 0 01-.723-.526l1.002-5.474L2.08 10.13a.498.498 0 01.277-.85l5.495-.8 2.457-4.981z" />
                           </svg>
                         </motion.button>
- 
+
                         <motion.button 
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.08 }}
+                          whileTap={{ scale: 0.92 }}
                           onClick={copyToClipboard} 
-                          className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center group transition-colors cursor-pointer"
+                          className="w-9 h-9 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center group transition-colors cursor-pointer"
                           title={t.copyTooltip}
                         >
                           <AnimatePresence mode="wait">
                             {copied ? (
-                              <motion.svg key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></motion.svg>
+                              <motion.svg key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></motion.svg>
                             ) : (
-                              <motion.svg key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="w-5 h-5 text-brand-dark/30 dark:text-gray-500 group-hover:text-brand-dark dark:group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></motion.svg>
+                              <motion.svg key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="w-4 h-4 text-brand-dark/40 dark:text-gray-400 group-hover:text-brand-dark dark:group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></motion.svg>
                             )}
                           </AnimatePresence>
                         </motion.button>
@@ -878,7 +1053,7 @@ const App: React.FC = () => {
                           <svg className={`w-3.5 h-3.5 text-brand-lime dark:text-lime-500 transition-transform duration-300 ${showAcademic ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                           </svg>
-                          <span>{lang === 'fa' ? 'تحلیل آکادمیک ردیف دستگاهی' : 'Academic Row-Dastgah Analysis'}</span>
+                          <span>{lang === 'fa' ? 'تحلیل آکادمیک ردیف دستگاهی' : 'Academic Radif Analysis'}</span>
                         </span>
                         <span className="text-[10px] bg-brand-dark/5 dark:bg-white/5 px-2.5 py-0.5 rounded-full text-brand-dark/50 dark:text-gray-400">
                           {showAcademic ? (lang === 'fa' ? 'بستن' : 'Close') : (lang === 'fa' ? 'مشاهده' : 'View')}
@@ -899,7 +1074,7 @@ const App: React.FC = () => {
                             <svg className="w-3.5 h-3.5 text-brand-lime dark:text-lime-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
-                            {lang === 'fa' ? 'تحلیل آکادمیک ردیف (هنرستان موسیقی)' : 'ACADEMIC ANALYSIS'}
+                            {lang === 'fa' ? 'تحلیل آکادمیک ردیف (هنرستان موسیقی)' : 'Academic Radif Analysis (Music Conservatory)'}
                           </span>
                         </div>
  
@@ -990,6 +1165,40 @@ const App: React.FC = () => {
                       </motion.div>
                     )}
                   </section>
+
+                  {/* Compact & Sleek User-Friendly Support Banner */}
+                  <motion.section
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => setView('support')}
+                    dir={lang === 'fa' ? 'rtl' : 'ltr'}
+                    className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500/10 via-brand-lime/15 to-amber-500/10 dark:from-rose-950/30 dark:via-lime-950/30 dark:to-amber-950/30 border border-rose-500/20 dark:border-rose-400/20 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 text-rose-500 flex items-center justify-center text-sm shadow-sm shrink-0 group-hover:scale-110 transition-transform">
+                        ❤️
+                      </div>
+                      <div className={`flex flex-col min-w-0 ${lang === 'fa' ? 'text-right' : 'text-left'}`}>
+                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                          <h4 className="text-xs sm:text-sm font-black text-brand-dark dark:text-white leading-tight">
+                            {lang === 'fa' ? 'حمایت از توسعه کُرنوسُری' : 'Support Koronosori'}
+                          </h4>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black whitespace-nowrap">
+                            {lang === 'fa' ? 'مستقل و رایگان' : 'Ad-free'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-[11px] text-brand-dark/60 dark:text-gray-400 font-medium mt-0.5 leading-tight">
+                          {lang === 'fa' ? 'کمک به پایداری سرورها، بهبود برنامه و امکانات جدید' : 'Support server stability, app improvements & new features'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className={`w-7 h-7 rounded-full bg-brand-dark dark:bg-white text-white dark:text-brand-dark flex items-center justify-center text-xs font-black shadow-sm shrink-0 transition-transform ${lang === 'fa' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
+                      {lang === 'fa' ? '←' : '→'}
+                    </div>
+                  </motion.section>
                 </div>
               </motion.div>
             )}
@@ -1054,7 +1263,7 @@ const App: React.FC = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowConfirmClear(true)}
-                                className="text-[10px] font-black text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-red-500/5 hover:bg-red-500/10 transition-colors cursor-pointer"
+                                className="text-[10px] font-black text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1 py-1 px-2.5 rounded-full bg-red-500/5 hover:bg-red-500/10 transition-colors cursor-pointer"
                               >
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1202,7 +1411,64 @@ const App: React.FC = () => {
                                   );
                                 })}
                               </div>
- 
+
+                              {/* Personal Note Section */}
+                              <div className="mt-2.5 pt-2 border-t border-brand-dark/5 dark:border-white/5 text-right" onClick={(e) => e.stopPropagation()}>
+                                {editingNoteId === fav.id ? (
+                                  <div className="space-y-1.5">
+                                    <textarea
+                                      value={editingNoteText}
+                                      onChange={(e) => setEditingNoteText(e.target.value)}
+                                      placeholder={t.notePlaceholder}
+                                      className="w-full text-[11px] p-2 rounded-xl bg-white dark:bg-gray-800 border border-brand-dark/15 dark:border-white/15 text-brand-dark dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-lime resize-none"
+                                      rows={2}
+                                      autoFocus
+                                    />
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <button
+                                        onClick={() => {
+                                          setEditingNoteId(null);
+                                          setEditingNoteText('');
+                                        }}
+                                        className="text-[10px] px-2 py-0.5 rounded-lg text-brand-dark/50 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer font-bold"
+                                      >
+                                        {lang === 'fa' ? 'انصراف' : 'Cancel'}
+                                      </button>
+                                      <button
+                                        onClick={() => handleSaveNote(fav.id, editingNoteText)}
+                                        className="text-[10px] px-2.5 py-0.5 rounded-lg bg-brand-dark dark:bg-white text-white dark:text-brand-dark font-black cursor-pointer shadow-sm"
+                                      >
+                                        {t.saveNote}
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-start justify-between group/note gap-1.5">
+                                    {fav.note ? (
+                                      <div className="flex items-start gap-1 flex-grow">
+                                        <span className="text-[10px] text-amber-500 mt-0.5">📝</span>
+                                        <p className="text-[10px] font-medium text-brand-dark/70 dark:text-gray-300 leading-relaxed break-words">
+                                          {fav.note}
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      <span className="text-[9px] text-brand-dark/30 dark:text-gray-600 font-medium">
+                                        {lang === 'fa' ? 'بدون یادداشت' : 'No personal note'}
+                                      </span>
+                                    )}
+                                    <button
+                                      onClick={() => {
+                                        setEditingNoteId(fav.id);
+                                        setEditingNoteText(fav.note || '');
+                                      }}
+                                      className="text-[9px] font-bold text-brand-dark/40 dark:text-gray-500 hover:text-brand-dark dark:hover:text-white px-1 py-0.5 rounded hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer shrink-0 transition-colors"
+                                    >
+                                      {fav.note ? t.editNote : `+ ${t.addNote}`}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
                               <div className="flex items-center justify-between gap-1.5 mt-2.5 pt-2 border-t border-brand-dark/5 dark:border-white/5" onClick={(e) => e.stopPropagation()}>
                                 {/* Trash Icon */}
                                 <motion.button
@@ -1218,7 +1484,7 @@ const App: React.FC = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                   </svg>
                                 </motion.button>
- 
+
                                 <div className="flex items-center gap-1.5">
                                   {/* Copy notes button */}
                                   <motion.button
@@ -1226,7 +1492,7 @@ const App: React.FC = () => {
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => {
                                       const noteStr = favNotes.map(translateNote).join(' - ');
-                                      const text = `${label}\n${lang === 'fa' ? 'نت‌ها: ' : 'Notes: '}${noteStr}\n${lang === 'fa' ? 'سرکلید: ' : 'Key Sig: '}${keySigStr}`;
+                                      const text = `${label}\n${lang === 'fa' ? 'نت‌ها: ' : 'Notes: '}${noteStr}\n${lang === 'fa' ? 'سرکلید: ' : 'Key Sig: '}${keySigStr}${fav.note ? `\n${lang === 'fa' ? 'یادداشت: ' : 'Note: '}${fav.note}` : ''}`;
                                       navigator.clipboard.writeText(text).then(() => {
                                         setCopiedFavId(fav.id);
                                         setTimeout(() => setCopiedFavId(null), 2000);
@@ -1249,7 +1515,7 @@ const App: React.FC = () => {
                                       </svg>
                                     )}
                                   </motion.button>
- 
+
                                   {/* Play Button */}
                                   <motion.button
                                     whileHover={{ scale: 1.1 }}
@@ -1274,144 +1540,30 @@ const App: React.FC = () => {
                 )}
               </motion.div>
             )}
+
+            {/* Metronome View */}
+            {view === 'metronome' && (
+              <Metronome key="metronome" lang={lang} />
+            )}
  
             {/* About Modal View */}
             {view === 'about' && (
-              <motion.div
-                key="about"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-[2.5rem] shadow-xl space-y-6 border border-gray-100 dark:border-gray-800 flex flex-col"
-              >
-                <h2 className="text-2xl font-black text-center text-brand-dark dark:text-white shrink-0">{t.aboutTitle}</h2>
-                <div className="space-y-4 text-brand-dark/80 dark:text-gray-300 leading-relaxed font-medium text-sm text-justify">
-                  {t.aboutDesc.split('\n').map((paragraph, idx) => {
-                    if (paragraph.includes('@arefashemi')) {
-                      const parts = paragraph.split('@arefashemi');
-                      return (
-                        <p key={idx} className="whitespace-pre-line">
-                          {parts[0]}
-                          <a
-                            href="https://t.me/arefashemi"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 dark:text-blue-400 hover:underline font-black inline-flex items-center gap-0.5"
-                          >
-                            @arefashemi
-                          </a>
-                          {parts[1]}
-                        </p>
-                      );
-                    }
-                    return <p key={idx} className="whitespace-pre-line">{paragraph}</p>;
-                  })}
-                </div>
-                
-                <div className="flex justify-center gap-6 pt-2 pb-2 shrink-0">
-                  <motion.a 
-                    href="https://t.me/arefashemi" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer shadow-sm"
-                    title="Telegram"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.285-.346-.09l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.498-.185.938.11.725.993z"/></svg>
-                  </motion.a>
-                  <motion.a 
-                    href="https://instagram.com/arefashemi" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 rounded-full bg-pink-50 dark:bg-pink-900/20 flex items-center justify-center text-pink-500 hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors cursor-pointer shadow-sm"
-                    title="Instagram"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                  </motion.a>
-                </div>
- 
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setView('home')} className="w-full py-4 bg-brand-dark dark:bg-white dark:text-brand-dark text-white rounded-[2rem] font-black text-lg transition-all shadow-lg shrink-0 cursor-pointer">{t.backBtn}</motion.button>
-              </motion.div>
+              <AboutModal 
+                key="about" 
+                lang={lang} 
+                onBack={() => setView('home')} 
+                onOpenSupport={() => setView('support')} 
+              />
             )}
  
             {/* Col. Alinaqi Vaziri View */}
             {view === 'vaziri' && (
-              <motion.div
-                key="vaziri"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-[2.5rem] shadow-xl space-y-6 border border-gray-100 dark:border-gray-800 flex flex-col relative"
-              >
-                <h2 className="text-2xl font-black text-center text-brand-dark dark:text-white shrink-0">{t.vaziriTitle}</h2>
-                <div>
-                  <p className="text-center text-brand-dark/70 dark:text-gray-400 leading-relaxed font-medium whitespace-pre-line text-sm bg-brand-gray/50 dark:bg-gray-800/50 p-6 rounded-[2rem] border border-brand-dark/5 dark:border-white/5 shadow-inner">
-                    {t.vaziriDesc}
-                  </p>
-                </div>
-                
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setView('home')} className="w-full py-4 bg-brand-dark dark:bg-white dark:text-brand-dark text-white rounded-[2rem] font-black text-base transition-all shadow-lg shrink-0 cursor-pointer">
-                  {t.backBtn}
-                </motion.button>
-              </motion.div>
+              <VaziriModal key="vaziri" lang={lang} onBack={() => setView('home')} />
             )}
  
             {/* Support View */}
             {view === 'support' && (
-              <motion.div
-                key="support"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white dark:bg-gray-950 p-6 sm:p-8 rounded-[2.5rem] shadow-xl space-y-6 relative border border-gray-100 dark:border-gray-800 flex flex-col items-center"
-              >
-                <div className="absolute top-0 left-0 w-full h-2 bg-brand-lime"></div>
-                
-                <div className="text-center space-y-2">
-                  <div className="w-16 h-16 bg-brand-lime/10 dark:bg-lime-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2">
-                    <span className="text-3xl">💝</span>
-                  </div>
-                  <h2 className="text-2xl font-black text-brand-dark dark:text-white">{t.supportTitle}</h2>
-                  <p className="text-xs font-medium text-brand-dark/60 dark:text-gray-400 max-w-[240px] mx-auto">
-                    {t.supportDesc}
-                  </p>
-                </div>
- 
-                <div className="w-full space-y-3">
-                  {[
-                    { id: 1, title: t.supportTier1, desc: t.supportTier1Desc, color: 'bg-orange-50 dark:bg-orange-900/10', textColor: 'text-orange-600 dark:text-orange-400' },
-                    { id: 2, title: t.supportTier2, desc: t.supportTier2Desc, color: 'bg-blue-50 dark:bg-blue-900/10', textColor: 'text-blue-600 dark:text-blue-400' },
-                    { id: 3, title: t.supportTier3, desc: t.supportTier3Desc, color: 'bg-brand-lime/10 dark:bg-lime-500/10', textColor: 'text-brand-dark dark:text-lime-400' },
-                  ].map((tier) => (
-                    <motion.button
-                      key={tier.id}
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`w-full p-3.5 rounded-[2rem] ${tier.color} flex items-center justify-between group transition-all border border-transparent hover:border-current/10 cursor-pointer`}
-                    >
-                      <div className="text-right">
-                        <h4 className={`font-black text-xs sm:text-sm ${tier.textColor}`}>{tier.title}</h4>
-                        <p className="text-[9px] font-bold opacity-60 dark:text-gray-400">{tier.desc}</p>
-                      </div>
-                      <div className={`w-7 h-7 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all`}>
-                        <svg className={`w-3.5 h-3.5 ${tier.textColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d={lang === 'fa' ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-                        </svg>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-                
-                <button 
-                  onClick={() => setView('home')} 
-                  className="w-full py-4 bg-brand-dark dark:bg-white text-white dark:text-brand-dark rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 cursor-pointer"
-                >
-                  {t.backBtn}
-                </button>
-              </motion.div>
+              <SupportModal key="support" lang={lang} onBack={() => setView('home')} />
             )}
  
             {/* Updates & Changelog View */}
@@ -1523,6 +1675,21 @@ const App: React.FC = () => {
                 {/* Scrollable Changelog List */}
                 <div className="flex-grow overflow-y-auto max-h-[250px] space-y-4 pr-1" style={{ scrollbarWidth: 'thin' }}>
                   {[
+                    {
+                      version: '2.3.0',
+                      date: lang === 'fa' ? 'شهریور ۱۴۰۵' : 'August 2026',
+                      notes: lang === 'fa' ? [
+                        'افزودن مترونوم اختصاصی و فوق‌العاده دقیق با سنتز صوتی بدون تأخیر (Web Audio API)',
+                        'پشتیبانی از میزان‌نماهای پرکاربرد موسیقی ایرانی و غربی (۲/۴، ۳/۴، ۴/۴، ۶/۸، ۵/۸، ۷/۸ و ضرب آزاد)',
+                        'قابلیت تپ تمپو (Tap Tempo) برای تشخیص و تنظیم فوری سرعت با لمس ریتمیک',
+                        'نشانگر بصری ضرب‌ها به همراه آکسان ضرب اول و ۳ نوع صدای زنگ/چوبک/تیک'
+                      ] : [
+                        'Added dedicated high-precision Metronome powered by zero-latency Web Audio API scheduling.',
+                        'Support for common Western and traditional Persian time signatures (2/4, 3/4, 4/4, 6/8, 5/8, 7/8, and free pulse).',
+                        'Tap Tempo feature to instantly detect and adjust BPM by tapping.',
+                        'Visual beat indicators, first-beat accent, and 3 distinct acoustic/digital sound timbres.'
+                      ]
+                    },
                     {
                       version: '2.2.0',
                       date: lang === 'fa' ? 'مرداد ۱۴۰۵' : 'August 2026',
@@ -1685,12 +1852,12 @@ const App: React.FC = () => {
 
         <footer className="text-center py-4 mt-auto">
           <AnimatePresence>
-            {(view === 'home' || view === 'favorites') && (
+            {(view === 'home' || view === 'favorites' || view === 'metronome') && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex justify-center gap-6 mb-2"
+                className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mb-2"
               >
                 <button onClick={() => setView('about')} className="text-[10px] font-black text-brand-dark/40 dark:text-gray-600 hover:text-brand-dark dark:hover:text-white transition-colors uppercase tracking-widest cursor-pointer">{t.aboutLink}</button>
                 <span className="text-brand-dark/10 dark:text-gray-800">|</span>
@@ -1698,7 +1865,7 @@ const App: React.FC = () => {
                 <span className="text-brand-dark/10 dark:text-gray-800">|</span>
                 <button onClick={() => setView('changelog')} className="text-[10px] font-black text-brand-dark/40 dark:text-gray-600 hover:text-brand-dark dark:hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1.5 cursor-pointer">
                   <span>{t.changelogLink}</span>
-                  {appVersion !== '2.2.0' && (
+                  {appVersion !== '2.3.0' && (
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-lime dark:bg-lime-500 animate-pulse"></span>
                   )}
                 </button>
