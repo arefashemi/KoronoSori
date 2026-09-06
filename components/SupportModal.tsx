@@ -83,6 +83,9 @@ export const SupportModal: React.FC<SupportModalProps> = ({ lang, onBack }) => {
       exit={{ opacity: 0, y: -15 }}
       className="bg-white dark:bg-gray-900 p-5 sm:p-7 rounded-[2.5rem] shadow-xl space-y-4 border border-gray-100 dark:border-gray-800 flex flex-col relative overflow-hidden"
     >
+      {/* Decorative Ambient Accent */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-brand-lime/10 dark:bg-brand-lime/5 rounded-full blur-3xl pointer-events-none"></div>
+
       {/* Toast popup */}
       <AnimatePresence>
         {showRedirectNotice && (
@@ -222,7 +225,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ lang, onBack }) => {
           </div>
 
           {/* Direct Online Payment Button */}
-          <div className="p-4 rounded-3xl bg-gradient-to-br from-gray-900 via-brand-dark to-slate-900 text-white shadow-xl border border-white/10 space-y-3 text-center">
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-gray-900 via-brand-dark to-slate-900 text-white shadow-xl border border-white/10 space-y-3 text-center relative overflow-hidden">
             <div className="flex items-center justify-center gap-2 text-xs font-black text-brand-lime">
               <span>🔒</span>
               <span>{paymentGateway.gatewayName}</span>
@@ -238,7 +241,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ lang, onBack }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleOpenGateway(paymentGateway.zarinpalLink)}
-              className="w-full py-3.5 px-4 bg-brand-lime text-brand-dark rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg hover:opacity-95 cursor-pointer"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 cursor-pointer transition-all"
             >
               <span>💳</span>
               <span>{lang === 'fa' ? 'ورود به درگاه پرداخت آنلاین' : 'Proceed to Secure Payment'}</span>

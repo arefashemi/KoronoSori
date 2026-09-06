@@ -1190,28 +1190,28 @@ const App: React.FC = () => {
                     whileTap={{ scale: 0.99 }}
                     onClick={() => setView('support')}
                     dir={lang === 'fa' ? 'rtl' : 'ltr'}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500/10 via-brand-lime/15 to-amber-500/10 dark:from-rose-950/30 dark:via-lime-950/30 dark:to-amber-950/30 border border-rose-500/20 dark:border-rose-400/20 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                    className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500/15 via-red-500/10 to-rose-600/15 dark:from-rose-950/45 dark:via-red-950/35 dark:to-rose-900/40 border border-rose-500/30 dark:border-rose-400/25 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 text-rose-500 flex items-center justify-center text-sm shadow-sm shrink-0 group-hover:scale-110 transition-transform">
+                      <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/40 text-rose-500 flex items-center justify-center text-sm shadow-sm shrink-0 group-hover:scale-110 transition-transform">
                         ❤️
                       </div>
                       <div className={`flex flex-col min-w-0 ${lang === 'fa' ? 'text-right' : 'text-left'}`}>
                         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                          <h4 className="text-xs sm:text-sm font-black text-brand-dark dark:text-white leading-tight">
+                          <h4 className="text-xs sm:text-sm font-black text-rose-950 dark:text-rose-100 leading-tight">
                             {lang === 'fa' ? 'حمایت از توسعه کُرنوسُری' : 'Support Koronosori'}
                           </h4>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black whitespace-nowrap">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 font-black whitespace-nowrap border border-rose-500/20">
                             {lang === 'fa' ? 'مستقل و رایگان' : 'Ad-free'}
                           </span>
                         </div>
-                        <p className="text-[10px] sm:text-[11px] text-brand-dark/60 dark:text-gray-400 font-medium mt-0.5 leading-tight">
+                        <p className="text-[10px] sm:text-[11px] text-rose-950/70 dark:text-rose-200/70 font-medium mt-0.5 leading-tight">
                           {lang === 'fa' ? 'کمک به پایداری سرورها، بهبود برنامه و امکانات جدید' : 'Support server stability, app improvements & new features'}
                         </p>
                       </div>
                     </div>
 
-                    <div className={`w-7 h-7 rounded-full bg-brand-dark dark:bg-white text-white dark:text-brand-dark flex items-center justify-center text-xs font-black shadow-sm shrink-0 transition-transform ${lang === 'fa' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
+                    <div className={`w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center text-xs font-black shadow-sm shrink-0 transition-transform ${lang === 'fa' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
                       {lang === 'fa' ? '←' : '→'}
                     </div>
                   </motion.section>
