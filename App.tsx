@@ -5,6 +5,7 @@ import { Metronome } from './components/Metronome';
 import { VaziriModal } from './components/VaziriModal';
 import { AboutModal } from './components/AboutModal';
 import { SupportModal } from './components/SupportModal';
+import { TipsModal } from './components/TipsModal';
 import { getScaleNotes } from './utils/musicTheory';
 import { ScaleType, FavoriteScale } from './types';
 import { 
@@ -41,7 +42,7 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<'fa' | 'en'>('fa');
   const [darkMode, setDarkMode] = useState(false);
   const [notation, setNotation] = useState<'solfege' | 'alphabet'>('solfege');
-  const [view, setView] = useState<'home' | 'metronome' | 'about' | 'vaziri' | 'support' | 'favorites' | 'changelog'>('home');
+  const [view, setView] = useState<'home' | 'metronome' | 'about' | 'vaziri' | 'support' | 'favorites' | 'changelog' | 'tips'>('home');
   const [showScaleInfo, setShowScaleInfo] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [showAcademic, setShowAcademic] = useState(false);
@@ -746,6 +747,21 @@ const App: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
                 )}
+              </motion.button>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setView(v => v === 'tips' ? 'home' : 'tips')} 
+                className={`w-8 h-8 rounded-full backdrop-blur-md border shadow-sm hover:shadow-md flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  view === 'tips'
+                    ? 'bg-amber-400 border-amber-300 text-gray-950 shadow-amber-400/20'
+                    : 'bg-white/80 dark:bg-gray-800/80 border-white dark:border-gray-700 text-brand-dark dark:text-white hover:text-amber-500 dark:hover:text-amber-400'
+                }`}
+                title={lang === 'fa' ? 'نکات و ترفندها' : 'Tips & Tricks'}
+                aria-label="Tips and Tricks"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
               </motion.button>
             </div>
 
@@ -1564,6 +1580,11 @@ const App: React.FC = () => {
             {/* Support View */}
             {view === 'support' && (
               <SupportModal key="support" lang={lang} onBack={() => setView('home')} />
+            )}
+
+            {/* Tips & Tricks View */}
+            {view === 'tips' && (
+              <TipsModal key="tips" lang={lang} onBack={() => setView('home')} />
             )}
  
             {/* Updates & Changelog View */}
