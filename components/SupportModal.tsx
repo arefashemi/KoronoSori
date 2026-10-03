@@ -224,14 +224,16 @@ export const SupportModal: React.FC<SupportModalProps> = ({ lang, onBack }) => {
             </div>
           </div>
 
-          {/* Direct Online Payment Button */}
-          <div className="p-4 rounded-3xl bg-gradient-to-br from-gray-900 via-brand-dark to-slate-900 text-white shadow-xl border border-white/10 space-y-3 text-center relative overflow-hidden">
-            <div className="flex items-center justify-center gap-2 text-xs font-black text-brand-lime">
-              <span>🔒</span>
+          {/* Direct Online Payment Box */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-brand-lime dark:bg-lime-600/95 text-brand-dark shadow-xl border border-brand-lime/50 dark:border-lime-400/40 space-y-3.5 text-center relative overflow-hidden transition-colors duration-300">
+            <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full border-[20px] border-white/25 opacity-50 pointer-events-none"></div>
+
+            <div className="flex items-center justify-center gap-2 text-xs font-black text-brand-dark/90 dark:text-lime-950">
+              <span className="text-sm">🔒</span>
               <span>{paymentGateway.gatewayName}</span>
             </div>
             
-            <p className="text-[11px] text-gray-300 font-medium leading-relaxed max-w-xs mx-auto">
+            <p className="text-[11px] sm:text-xs text-brand-dark/80 dark:text-lime-950/90 font-bold leading-relaxed max-w-xs mx-auto">
               {lang === 'fa'
                 ? 'پرداخت کاملاً امن، آنی و مستقیم با کلیه کارت‌های عضو شبکه بانکی شتاب'
                 : 'Instant, secure checkout via all official banking cards'}
@@ -241,10 +243,10 @@ export const SupportModal: React.FC<SupportModalProps> = ({ lang, onBack }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleOpenGateway(paymentGateway.zarinpalLink)}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 cursor-pointer transition-all"
+              className="w-full py-3.5 px-4 bg-brand-dark hover:bg-black dark:bg-gray-950 dark:hover:bg-black text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-dark/25 cursor-pointer transition-all border border-brand-dark/20"
             >
-              <span>💳</span>
-              <span>{lang === 'fa' ? 'ورود به درگاه پرداخت آنلاین' : 'Proceed to Secure Payment'}</span>
+              <span className="text-base">💳</span>
+              <span>{lang === 'fa' ? 'ورود به درگاه پرداخت آنلاین شاپرک' : 'Proceed to Secure Payment'}</span>
               <span className="text-xs">↗</span>
             </motion.button>
           </div>

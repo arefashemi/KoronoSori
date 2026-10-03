@@ -636,6 +636,55 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const playSingleNoteByIndex = useCallback((idx: number) => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+
+    stopPlayback();
+
+    const rawIntervals = DASTGAH_INTERVALS_MAP[selectedScaleType] || MAHUR_INTERVALS;
+    const fullIntervals = [...rawIntervals, 24];
+    const intervalValue = fullIntervals[idx] !== undefined ? fullIntervals[idx] : 0;
+
+    let rootIndex = NOTE_BASE_INDICES[selectedRoot] ?? 0;
+    if (ACCIDENTAL_OFFSETS[selectedAccidental] !== undefined) {
+      rootIndex += ACCIDENTAL_OFFSETS[selectedAccidental];
+    }
+    rootIndex = (rootIndex % 24 + 24) % 24;
+
+    const absoluteStep = rootIndex + intervalValue;
+    const freq = 261.63 * Math.pow(2, absoluteStep / 24);
+
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1200, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(350, ctx.currentTime + 0.45);
+
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.04);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+
+    setPlayingIndex(idx);
+    const resetTimer = window.setTimeout(() => {
+      setPlayingIndex((prev) => (prev === idx ? null : prev));
+    }, 450);
+    playbackTimeoutsRef.current.push(resetTimer);
+  }, [getAudioContext, stopPlayback, selectedScaleType, selectedRoot, selectedAccidental]);
+
   return (
     <>
       {/* Refined Minimalist Persian Splash Screen */}
@@ -705,25 +754,25 @@ const App: React.FC = () => {
         <main className="flex-grow max-w-md mx-auto w-full flex flex-col relative gap-4">
           
           {/* Header Bar */}
-          <div className="w-full flex justify-between items-center mb-2.5" dir="ltr">
-            <div className="flex gap-1.5">
+          <div className="w-full flex justify-between items-center mb-2.5 gap-2" dir="ltr">
+            <div className="flex items-center gap-1.5 shrink-0">
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setLang(l => l === 'fa' ? 'en' : 'fa')} 
-                className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[10px] font-black tracking-widest text-brand-dark dark:text-white"
+                className="px-2.5 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[10px] font-black tracking-widest text-brand-dark dark:text-white shrink-0"
               >
                 {lang === 'fa' ? 'EN' : 'FA'}
               </motion.button>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setNotation(n => n === 'solfege' ? 'alphabet' : 'solfege')} 
-                className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[11px] font-black tracking-wide text-brand-dark dark:text-white flex items-center gap-1.5 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[11px] font-black tracking-wide text-brand-dark dark:text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
                 title={lang === 'fa' ? 'تغییر سیستم نام‌گذاری نت‌ها' : 'Change note naming system'}
               >
-                <svg className="w-3.5 h-3.5 text-brand-dark dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-brand-dark dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
-                <span>
+                <span className="whitespace-nowrap">
                   {notation === 'solfege' 
                     ? (lang === 'fa' ? 'دو ر می' : 'Do Re Mi') 
                     : 'A B C'}
@@ -732,7 +781,7 @@ const App: React.FC = () => {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setDarkMode(!darkMode)} 
-                className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-brand-dark dark:text-white flex items-center justify-center cursor-pointer transition-all duration-200"
+                className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-brand-dark dark:text-white flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0"
                 title={darkMode ? (lang === 'fa' ? 'حالت روز' : 'Light mode') : (lang === 'fa' ? 'حالت شب' : 'Dark mode')}
                 aria-label="Toggle theme"
               >
@@ -751,7 +800,7 @@ const App: React.FC = () => {
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setView(v => v === 'tips' ? 'home' : 'tips')} 
-                className={`w-8 h-8 rounded-full backdrop-blur-md border shadow-sm hover:shadow-md flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                className={`w-8 h-8 rounded-full backdrop-blur-md border shadow-sm hover:shadow-md flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0 ${
                   view === 'tips'
                     ? 'bg-amber-400 border-amber-300 text-gray-950 shadow-amber-400/20'
                     : 'bg-white/80 dark:bg-gray-800/80 border-white dark:border-gray-700 text-brand-dark dark:text-white hover:text-amber-500 dark:hover:text-amber-400'
@@ -765,14 +814,14 @@ const App: React.FC = () => {
               </motion.button>
             </div>
 
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-end shrink-0">
               <motion.h1 
                 onClick={() => setView('home')}
-                className="text-2xl font-black tracking-tighter text-brand-dark dark:text-white cursor-pointer select-none leading-tight"
+                className="text-2xl font-black tracking-tighter text-brand-dark dark:text-white cursor-pointer select-none leading-tight whitespace-nowrap"
               >
                 {t.appTitle}
               </motion.h1>
-              <span className="text-[9.5px] font-bold text-brand-dark/40 dark:text-gray-500 tracking-normal select-none">
+              <span className="text-[9.5px] font-bold text-brand-dark/40 dark:text-gray-500 tracking-normal select-none whitespace-nowrap">
                 {t.appSlogan}
               </span>
             </div>
@@ -853,71 +902,94 @@ const App: React.FC = () => {
      
                     <div className="space-y-3">
                       {/* Dastgah Selector */}
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between">
-                          <label className="text-brand-dark/60 dark:text-lime-100/70 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
+                          <label className="text-brand-dark/70 dark:text-lime-100/80 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
                             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
                             {t.scaleLabel}
                           </label>
                           <motion.button
+                            whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setShowScaleInfo(true)}
-                            className="w-5 h-5 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center text-brand-dark dark:text-white"
+                            className="w-5 h-5 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/20 dark:hover:bg-white/30 flex items-center justify-center text-brand-dark dark:text-white transition-colors cursor-pointer"
+                            title={lang === 'fa' ? 'راهنمای این دستگاه' : 'Scale info'}
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           </motion.button>
                         </div>
-                        <select 
-                          value={selectedScaleType} 
-                          onChange={(e) => setSelectedScaleType(e.target.value)} 
-                          className="appearance-none w-full bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm text-brand-dark dark:text-white py-2.5 px-3.5 rounded-xl border-none shadow-inner focus:ring-2 focus:ring-brand-dark/5 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer"
-                        >
-                          {scaleOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>
-                              {t.scales[opt.value as keyof typeof t.scales] || opt.value}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative">
+                          <select 
+                            value={selectedScaleType} 
+                            onChange={(e) => setSelectedScaleType(e.target.value)} 
+                            className="appearance-none w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-md text-brand-dark dark:text-white py-2.5 px-3.5 pe-8 rounded-xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
+                          >
+                            {scaleOptions.map(opt => (
+                              <option key={opt.value} value={opt.value}>
+                                {t.scales[opt.value as keyof typeof t.scales] || opt.value}
+                              </option>
+                            ))}
+                          </select>
+                          <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-2.5' : 'right-2.5'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
      
                       {/* Root Note & Accidental */}
                       <div className="flex gap-3">
                         <div className="w-3/5">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-brand-dark/60 dark:text-lime-100/70 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
+                          <div className="flex flex-col gap-1.5">
+                            <label className="text-brand-dark/70 dark:text-lime-100/80 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
                               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
                               {t.rootLabel}
                             </label>
-                            <select 
-                              value={selectedRoot} 
-                              onChange={(e) => setSelectedRoot(e.target.value)} 
-                              className="appearance-none w-full bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm text-brand-dark dark:text-white py-2.5 px-3.5 rounded-xl border-none shadow-inner focus:ring-2 focus:ring-brand-dark/5 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer"
-                            >
-                              {ROOT_OPTIONS.map(opt => (
-                                <option key={opt} value={opt}>
-                                  {notation === 'alphabet' ? (ALPHABET_NOTES[opt] || opt) : (t.notes[opt as keyof typeof t.notes] || opt)}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="relative">
+                              <select 
+                                value={selectedRoot} 
+                                onChange={(e) => setSelectedRoot(e.target.value)} 
+                                className="appearance-none w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-md text-brand-dark dark:text-white py-2.5 px-3.5 pe-8 rounded-xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
+                              >
+                                {ROOT_OPTIONS.map(opt => (
+                                  <option key={opt} value={opt}>
+                                    {notation === 'alphabet' ? (ALPHABET_NOTES[opt] || opt) : (t.notes[opt as keyof typeof t.notes] || opt)}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-2.5' : 'right-2.5'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <div className="w-2/5">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-brand-dark/60 dark:text-lime-100/70 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
+                          <div className="flex flex-col gap-1.5">
+                            <label className="text-brand-dark/70 dark:text-lime-100/80 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
                               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
                               {t.accLabel}
                             </label>
-                            <select 
-                              value={selectedAccidental} 
-                              onChange={(e) => setSelectedAccidental(e.target.value)} 
-                              className="appearance-none w-full bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm text-brand-dark dark:text-white py-2.5 px-3.5 rounded-xl border-none shadow-inner focus:ring-2 focus:ring-brand-dark/5 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer"
-                            >
-                              {ACCIDENTAL_OPTIONS.map(opt => (
-                                <option key={opt} value={opt}>
-                                  {t.accidentals[opt as keyof typeof t.accidentals] || opt}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="relative">
+                              <select 
+                                value={selectedAccidental} 
+                                onChange={(e) => setSelectedAccidental(e.target.value)} 
+                                className="appearance-none w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-md text-brand-dark dark:text-white py-2.5 px-3.5 pe-8 rounded-xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
+                              >
+                                {ACCIDENTAL_OPTIONS.map(opt => (
+                                  <option key={opt} value={opt}>
+                                    {t.accidentals[opt as keyof typeof t.accidentals] || opt}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-2.5' : 'right-2.5'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1050,16 +1122,45 @@ const App: React.FC = () => {
                     </div>
     
                     {/* Piano Keys Display */}
-                    <div className="grid grid-cols-4 gap-2.5 pt-2.5">
-                      {resultNotes.map((note, index) => (
-                        <PianoKey key={`${note}-${index}`} note={note} index={index} lang={lang} notation={notation} active={playingIndex === index} />
-                      ))}
-                      {resultNotes.length > 0 && (
-                        <PianoKey key="octave-note" note={resultNotes[0]} index={7} lang={lang} notation={notation} active={playingIndex === 7} />
-                      )}
+                    <div className="pt-2">
+                      {/* Archived for future versions:
+                      <div className="flex items-center justify-between px-1 mb-2">
+                        <span className="text-[10.5px] font-bold text-brand-dark/50 dark:text-gray-400 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse"></span>
+                          <span>{lang === 'fa' ? 'نت‌های مقیاس (لمس برای شنیدن تک‌نت):' : 'Scale Notes (Tap to audition note):'}</span>
+                        </span>
+                        <span className="text-[9.5px] font-mono font-bold text-brand-dark/40 dark:text-gray-500">
+                          {notation === 'alphabet' ? 'A–G' : 'دو–سی'}
+                        </span>
+                      </div>
+                      */}
+                      <div className="grid grid-cols-4 gap-2.5">
+                        {resultNotes.map((note, index) => (
+                          <PianoKey 
+                            key={`${note}-${index}`} 
+                            note={note} 
+                            index={index} 
+                            lang={lang} 
+                            notation={notation} 
+                            active={playingIndex === index}
+                            onClick={() => playSingleNoteByIndex(index)} 
+                          />
+                        ))}
+                        {resultNotes.length > 0 && (
+                          <PianoKey 
+                            key="octave-note" 
+                            note={resultNotes[0]} 
+                            index={7} 
+                            lang={lang} 
+                            notation={notation} 
+                            active={playingIndex === 7}
+                            onClick={() => playSingleNoteByIndex(7)} 
+                          />
+                        )}
+                      </div>
                     </div>
  
-                    {/* Academic Toggle Button */}
+                    {/* Archived for future versions: Academic Radif Analysis Section
                     {academicData && (
                       <button 
                         onClick={() => setShowAcademic(!showAcademic)}
@@ -1077,7 +1178,6 @@ const App: React.FC = () => {
                       </button>
                     )}
  
-                    {/* Academic Analysis Drawer */}
                     {academicData && showAcademic && (
                       <motion.div 
                         initial={{ opacity: 0, height: 0 }}
@@ -1086,17 +1186,23 @@ const App: React.FC = () => {
                         className="mt-4 pt-4 border-t border-brand-dark/5 dark:border-white/5 space-y-4"
                       >
                         <div className="flex items-center justify-between px-2">
-                          <span className="text-[10px] font-black text-brand-dark/30 dark:text-gray-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <span className="text-[10px] font-black text-brand-dark/40 dark:text-gray-400 uppercase tracking-[0.15em] flex items-center gap-2">
                             <svg className="w-3.5 h-3.5 text-brand-lime dark:text-lime-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
-                            {lang === 'fa' ? 'تحلیل آکادمیک ردیف (هنرستان موسیقی)' : 'Academic Radif Analysis (Music Conservatory)'}
+                            {lang === 'fa' ? 'تحلیل ساختار مُدال و دو دانگی (رساله دکتر هومان اسعدی)' : 'Modal & Two-Dang Analysis (Dr. H. Asadi Thesis)'}
+                          </span>
+                          <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full ${
+                            academicData.cycleHomogeneity === 'همگن' 
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' 
+                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                          }`}>
+                            {lang === 'fa' ? `سیکل ${academicData.cycleHomogeneity}` : `${academicData.cycleHomogeneityEn} Cycle`}
                           </span>
                         </div>
  
-                        {/* Key Notes Cards */}
-                        <div className="grid grid-cols-3 gap-2 px-1">
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+                        <div className={`grid ${academicData.khatemehDegree ? 'grid-cols-4' : 'grid-cols-3'} gap-1.5 px-1`}>
+                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
                             <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
                               {t.shahedLabel}
                             </span>
@@ -1104,8 +1210,8 @@ const App: React.FC = () => {
                               {resultNotes[academicData.shahedDegree - 1] ? translateNote(resultNotes[academicData.shahedDegree - 1]) : '—'}
                             </span>
                           </div>
- 
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+
+                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
                             <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
                               {t.istLabel}
                             </span>
@@ -1113,8 +1219,19 @@ const App: React.FC = () => {
                               {resultNotes[academicData.istDegree - 1] ? translateNote(resultNotes[academicData.istDegree - 1]) : '—'}
                             </span>
                           </div>
- 
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center text-center">
+
+                          {academicData.khatemehDegree && (
+                            <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
+                              <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
+                                {t.khatemehLabel || (lang === 'fa' ? 'نت خاتمه' : 'Finalis')}
+                              </span>
+                              <span className="text-xs font-black text-brand-dark dark:text-white">
+                                {resultNotes[academicData.khatemehDegree - 1] ? translateNote(resultNotes[academicData.khatemehDegree - 1]) : '—'}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
                             <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
                               {t.motaghayyerLabel}
                             </span>
@@ -1126,7 +1243,6 @@ const App: React.FC = () => {
                           </div>
                         </div>
  
-                        {/* Tetrachords (دانگ‌ها) */}
                         {dangsData && (
                           <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-3xl p-4 space-y-3.5">
                             <div className="flex items-center justify-between">
@@ -1140,7 +1256,16 @@ const App: React.FC = () => {
                                 {dangsData.type}
                               </span>
                             </div>
- 
+
+                            <div className="bg-brand-lime/10 dark:bg-lime-500/10 border border-brand-lime/20 dark:border-lime-500/20 px-3 py-2 rounded-2xl flex items-center justify-between text-xs">
+                              <span className="text-[10px] font-bold text-brand-dark/60 dark:text-gray-400">
+                                {t.dangStructureLabel || (lang === 'fa' ? 'ترکیب دو دانگی' : 'Two-Dang Conjunction')}:
+                              </span>
+                              <span className="font-black text-brand-dark dark:text-lime-300 text-[11px]">
+                                {lang === 'fa' ? academicData.dangsFormulaFa : academicData.dangsFormulaEn}
+                              </span>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-3">
                               <div className="space-y-1 bg-white/40 dark:bg-gray-800/40 p-2.5 rounded-2xl border border-brand-dark/5 dark:border-white/5">
                                 <span className="text-[9px] font-bold text-brand-dark/40 dark:text-gray-500 block">
@@ -1162,7 +1287,6 @@ const App: React.FC = () => {
                           </div>
                         )}
  
-                        {/* Goushehs */}
                         <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-3xl p-4 space-y-2.5">
                           <span className="text-[10px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider block">
                             {t.goushehsLabel}
@@ -1180,6 +1304,7 @@ const App: React.FC = () => {
                         </div>
                       </motion.div>
                     )}
+                    */}
                   </section>
 
                   {/* Compact & Sleek User-Friendly Support Banner */}

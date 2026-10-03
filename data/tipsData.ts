@@ -113,8 +113,8 @@ export const TIPS_DATA: TipItem[] = [
     category: 'dastgah',
     titleFa: 'دستگاه نوا؛ آرامش خردورزانه',
     titleEn: 'Nava: Contemplative Serenity',
-    descFa: 'قدما نوا را نغمه‌ای برای تفکر شبانه می‌دانستند. گرچه فواصل آن شبیه شور است، اما شاهد بودن درجه چهارم باعث می‌شود حسی کاملاً آرام، صبور و متفکر داشته باشد.',
-    descEn: 'Historically prized for night meditation, Nava shares intervals with Shur but centers on the 4th degree, evoking philosophical tranquility.',
+    descFa: 'دستگاه نوا از پیوند دو دانگ شور و نوا شکل می‌گیرد؛ نغمه مشترک میان دو دانگ، نت شاهد است. نت ایست روی درجه هفتم (پیش از شاهد) و خاتمه روی درجه ششم قرار دارد و حسی آرام و متفکرانه می‌آفریند.',
+    descEn: 'Dastgah Nava is formed by conjoining Shur and Nava tetrachords; the common note serves as Shahed, with cadence (Ist) resting on the 7th and finalis on the 6th, evoking tranquility.',
     tagFa: 'نوا',
     tagEn: 'Nava',
     icon: '🌙'
@@ -151,6 +151,50 @@ export const TIPS_DATA: TipItem[] = [
     tagFa: 'گوشه‌شناسی',
     tagEn: 'Gousheh',
     icon: '🌊'
+  },
+  {
+    id: 121,
+    category: 'dastgah',
+    titleFa: 'مفهوم دستگاه: چرخه‌های چندمُدی (رساله دکتر اسعدی)',
+    titleEn: 'Dastgah as Multi-Modal Cycle (Dr. Asadi Thesis)',
+    descFa: 'بر مبنای رساله دکتری هومان اسعدی (۱۳۸۵)، دستگاه یک نظام انتزاعی تک‌مقام نیست، بلکه یک سیکل یا چرخه چندمُدی است که از مُد مبنا (درآمد) آغاز شده و با عبور از مُدهای اولیه، ثانویه یا انتقالی در نهایت با فرود به مُد مبنا بازمی‌گردد.',
+    descEn: 'According to Dr. Hooman Asadi’s doctoral dissertation (2006), a Dastgah is not a static single maqam, but an integrated multi-modal cycle that originates in the base mode (Daramad), navigates secondary, initial, and transitional modes, and ultimately resolves home via formal cadences.',
+    tagFa: 'رساله اسعدی',
+    tagEn: 'Asadi Thesis',
+    icon: '📜'
+  },
+  {
+    id: 122,
+    category: 'dastgah',
+    titleFa: 'سیکلهای همگن و ناهمگن در دستگاه‌ها',
+    titleEn: 'Homogeneous & Heterogeneous Cycles',
+    descFa: 'در طبقه‌بندی دکتر اسعدی، چرخه‌هایی مانند شور، چهارگاه، سه‌گاه و نوا که بر دانگ‌های متجانس بنا شده‌اند «سیکل همگن» هستند. در مقابل، ماهور، همایون و راست‌پنجگاه به دلیل تنوع دانگ‌ها و ترکیب‌های متناوب «سیکل ناهمگن» شناخته می‌شوند.',
+    descEn: 'In Dr. Asadi’s structural framework, modal cycles built on uniform tetrachords (Shur, Chahargah, Segah, Nava) are homogeneous, whereas cycles combining diverse tetrachord species (Mahur, Homayoun, Rast-Panjgah) represent heterogeneous cycles.',
+    tagFa: 'ساختارشناسی مُدال',
+    tagEn: 'Modal Taxonomy',
+    icon: '⚖️'
+  },
+  {
+    id: 123,
+    category: 'dastgah',
+    titleFa: 'پنج دانگ اصلی موسیقی کلاسیک ایران',
+    titleEn: 'The Five Primary Tetrachords',
+    descFa: 'بر اساس رساله اسعدی، بستر نغمگی دستگاه‌ها از پنج دانگ پایه شکل می‌گیرد: دانگ ماهور (ط ط ب)، دانگ دشتی/نوا (ط ب ط)، دانگ چهارگاه (جـ هـ ب)، دانگ شور (جـ جـ ط) و دانگ مخالف (جـ ط جـ).',
+    descEn: 'Dr. Asadi formulates Persian classical modality around five primary tetrachords: Mahur (T-T-S), Dashti/Nava (T-S-T), Chahargah (m-T+-S), Shur (m-m-T), and Mokhalef (m-T-m).',
+    tagFa: 'دانگ‌شناسی',
+    tagEn: 'Tetrachords',
+    icon: '🎼'
+  },
+  {
+    id: 124,
+    category: 'dastgah',
+    titleFa: 'گوشه‌های ثابت و فیگورهای سیار در ردیف',
+    titleEn: 'Fixed Modal Goushehs vs. Mobile Figures',
+    descFa: 'ردیف از دو لایه تشکیل شده است: زیرساخت مُدال (گوشه‌های ثابت مانند درآمد، زابل، حصار و مخالف) و روساخت الحانی (فیگورهای سیارِ عروضی و ریتمیک مانند کرشمه، چهارپاره، زنگوله، بسته‌نگار و حزین) که در دستگاه‌های گوناگون جامه‌های مُدال مختلف بر تن می‌کنند.',
+    descEn: 'The Radif comprises two foundational tiers: the modal substructure (fixed goushehs like Daramad, Zabol, Hesar, Mokhalef) and the melodic superstructure (mobile metric/prosodic figures like Kereshmeh, Chahar-Pareh, Zangouleh, Basteh-Negar, and Hazin) which adopt the modal mantle of whichever zone they inhabit.',
+    tagFa: 'فلسفه ردیف',
+    tagEn: 'Radif Theory',
+    icon: '✨'
   },
 
   // --- 2. Theory & Intervals ---

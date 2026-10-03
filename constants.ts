@@ -100,10 +100,12 @@ export const TRANSLATIONS = {
     supportTier3Desc: 'مبلغ دلخواه برای همراهی بیشتر',
     shahedLabel: 'نت شاهد',
     istLabel: 'نت ایست',
+    khatemehLabel: 'نت خاتمه',
     motaghayyerLabel: 'نت متغیر',
     tetrachordLabel: 'دانگ‌ها (تتراکوردها)',
     firstTetrachord: 'دانگ اول',
     secondTetrachord: 'دانگ دوم',
+    dangStructureLabel: 'ترکیب دو دانگی',
     goushehsLabel: 'گوشه‌های کلیدی ردیف',
     continuousLabel: 'پیوسته (متصل)',
     disjunctLabel: 'منفصل',
@@ -196,10 +198,12 @@ export const TRANSLATIONS = {
     supportTier3Desc: 'Custom amount for greater collaboration',
     shahedLabel: 'Shahed Note',
     istLabel: 'Ist Note',
+    khatemehLabel: 'Finalis (Khatemeh)',
     motaghayyerLabel: 'Variable Note',
     tetrachordLabel: 'Dangs (Tetrachords)',
     firstTetrachord: 'First Dang',
     secondTetrachord: 'Second Dang',
+    dangStructureLabel: 'Two-Dang Conjunction',
     goushehsLabel: 'Key Radif Goushehs',
     continuousLabel: 'Continuous (Conjoined)',
     disjunctLabel: 'Disjunct',
@@ -263,67 +267,107 @@ export const TRANSLATIONS = {
 export interface AcademicInfo {
   shahedDegree: number;
   istDegree: number;
+  khatemehDegree?: number | null;
   motaghayyerDegree: number | null;
   tetrachords_type: 'continuous' | 'disjunct';
+  cycleHomogeneity: 'همگن' | 'ناهمگن';
+  cycleHomogeneityEn: 'Homogeneous' | 'Heterogeneous';
+  dangsFormulaFa: string;
+  dangsFormulaEn: string;
   goushehs_fa: string[];
   goushehs_en: string[];
 }
 
 export const SCALE_ACADEMIC_DATA: Record<string, AcademicInfo> = {
   'شور': {
-    shahedDegree: 4,
+    shahedDegree: 1,
     istDegree: 1,
+    khatemehDegree: 1,
     motaghayyerDegree: 5,
     tetrachords_type: 'continuous',
-    goushehs_fa: ['درآمد', 'شهناز', 'قرچه', 'رضوی', 'حسینی', 'گریلی'],
-    goushehs_en: ['Daramad', 'Shahnaz', 'Qaracheh', 'Razavi', 'Hoseyni', 'Gereyli']
+    cycleHomogeneity: 'همگن',
+    cycleHomogeneityEn: 'Homogeneous',
+    dangsFormulaFa: 'دانگ شور + دانگ شور',
+    dangsFormulaEn: 'Shur Dang + Shur Dang',
+    goushehs_fa: ['درآمد', 'شهناز', 'قرچه', 'رضوی', 'حسینی'],
+    goushehs_en: ['Daramad', 'Shahnaz', 'Qaracheh', 'Razavi', 'Hoseyni']
   },
   'سه گاه': {
     shahedDegree: 1,
     istDegree: 1,
+    khatemehDegree: 1,
     motaghayyerDegree: null,
     tetrachords_type: 'continuous',
-    goushehs_fa: ['زابل', 'مخالف', 'مویه', 'حصار', 'جامی', 'مغلوب'],
-    goushehs_en: ['Zabol', 'Mokhalef', 'Muye', 'Hesar', 'Jami', 'Maghloob']
+    cycleHomogeneity: 'همگن',
+    cycleHomogeneityEn: 'Homogeneous',
+    dangsFormulaFa: 'بستر دو دانگ پیوسته شور (تریکوردها / پنتاکورد محوری)',
+    dangsFormulaEn: 'Conjoined Shur basis (Trichords / Axial Pentachord)',
+    goushehs_fa: ['درآمد', 'زابل', 'مویه', 'شکسته مویه', 'حصار', 'مخالف'],
+    goushehs_en: ['Daramad', 'Zabol', 'Muye', 'Shekasteh Muye', 'Hesar', 'Mokhalef']
   },
   'چهارگاه': {
     shahedDegree: 1,
     istDegree: 1,
+    khatemehDegree: 1,
     motaghayyerDegree: null,
     tetrachords_type: 'disjunct',
-    goushehs_fa: ['زابل', 'حصار', 'مخالف', 'مغلوب', 'منصوری', 'حدی و پهلوی'],
-    goushehs_en: ['Zabol', 'Hesar', 'Mokhalef', 'Maghloob', 'Mansoori', 'Hadi & Pahlavi']
+    cycleHomogeneity: 'همگن',
+    cycleHomogeneityEn: 'Homogeneous',
+    dangsFormulaFa: 'دانگ چهارگاه + دانگ چهارگاه',
+    dangsFormulaEn: 'Chahargah Dang + Chahargah Dang',
+    goushehs_fa: ['درآمد', 'زابل', 'حصار', 'مخالف', 'مغلوب', 'منصوری'],
+    goushehs_en: ['Daramad', 'Zabol', 'Hesar', 'Mokhalef', 'Maghloob', 'Mansoori']
   },
   'ماهور': {
     shahedDegree: 1,
     istDegree: 1,
+    khatemehDegree: 1,
     motaghayyerDegree: null,
     tetrachords_type: 'disjunct',
-    goushehs_fa: ['داد', 'شکسته', 'دلکش', 'عراق', 'خاوران', 'راک'],
-    goushehs_en: ['Dad', 'Shekasteh', 'Delkash', 'Iraq', 'Khavaran', 'Rak']
+    cycleHomogeneity: 'ناهمگن',
+    cycleHomogeneityEn: 'Heterogeneous',
+    dangsFormulaFa: 'دانگ ماهور + دانگ ماهور',
+    dangsFormulaEn: 'Mahur Dang + Mahur Dang',
+    goushehs_fa: ['درآمد', 'گوشاد', 'داد', 'خسروانی', 'دلکش', 'شکسته', 'عراق', 'راک'],
+    goushehs_en: ['Daramad', 'Gushad', 'Dad', 'Khosravani', 'Delkash', 'Shekasteh', 'Iraq', 'Rak']
   },
   'همایون': {
-    shahedDegree: 4,
+    shahedDegree: 2,
     istDegree: 1,
+    khatemehDegree: 1,
     motaghayyerDegree: null,
     tetrachords_type: 'continuous',
-    goushehs_fa: ['چکاوک', 'بیداد', 'نی‌داوود', 'شوشتری', 'بختیاری', 'لیلی و مجنون'],
-    goushehs_en: ['Chakavak', 'Bidad', 'Ney-Davood', 'Shushtari', 'Bakhtiari', 'Leyli & Majnoon']
+    cycleHomogeneity: 'ناهمگن',
+    cycleHomogeneityEn: 'Heterogeneous',
+    dangsFormulaFa: 'دانگ شور + دانگ چهارگاه (ترکیب مُدال)',
+    dangsFormulaEn: 'Shur Dang + Chahargah Dang (Modal Synthesis)',
+    goushehs_fa: ['درآمد', 'چکاوک', 'بیداد', 'نی‌داوود', 'شوشتری', 'بختیاری', 'لیلی و مجنون'],
+    goushehs_en: ['Daramad', 'Chakavak', 'Bidad', 'Ney-Davood', 'Shushtari', 'Bakhtiari', 'Leyli & Majnoon']
   },
   'نوا': {
-    shahedDegree: 4,
-    istDegree: 1,
+    shahedDegree: 1,
+    istDegree: 7,
+    khatemehDegree: 6,
     motaghayyerDegree: null,
     tetrachords_type: 'continuous',
-    goushehs_fa: ['گردانیه', 'بیات راجه', 'عشاق', 'نهفت', 'خجسته', 'عراق'],
-    goushehs_en: ['Gardaniyeh', 'Bayat-e Rajeh', 'Oshaq', 'Nahoft', 'Khojasteh', 'Iraq']
+    cycleHomogeneity: 'همگن',
+    cycleHomogeneityEn: 'Homogeneous',
+    dangsFormulaFa: 'دانگ شور + دانگ دشتی (نوا)',
+    dangsFormulaEn: 'Shur Dang + Dashti/Nava Dang',
+    goushehs_fa: ['درآمد', 'گردانیه', 'نغمه', 'بیات راجه', 'عشاق', 'نهفت', 'خجسته', 'حسینی'],
+    goushehs_en: ['Daramad', 'Gardaniyeh', 'Naghmeh', 'Bayat-e Rajeh', 'Oshaq', 'Nahoft', 'Khojasteh', 'Hoseyni']
   },
   'راست پنجگاه': {
     shahedDegree: 1,
     istDegree: 1,
+    khatemehDegree: 1,
     motaghayyerDegree: null,
     tetrachords_type: 'disjunct',
-    goushehs_fa: ['نغمه', 'عشاق', 'زنگوله', 'بیات عجم', 'بحر نور', 'قرچه'],
-    goushehs_en: ['Naghmeh', 'Oshaq', 'Zangouleh', 'Bayat-e Ajam', 'Bahr-e Noor', 'Qaracheh']
+    cycleHomogeneity: 'ناهمگن',
+    cycleHomogeneityEn: 'Heterogeneous',
+    dangsFormulaFa: 'دانگ ماهور + دانگ ماهور (با ملودی‌مُدل پروانه و محور شاهد)',
+    dangsFormulaEn: 'Mahur Dang + Mahur Dang (Parvaneh melody-model & axial Shahed)',
+    goushehs_fa: ['درآمد', 'زنگوله', 'نغمه', 'خسروانی', 'عشاق', 'بیات عجم', 'قرچه', 'بحر نور'],
+    goushehs_en: ['Daramad', 'Zangouleh', 'Naghmeh', 'Khosravani', 'Oshaq', 'Bayat-e Ajam', 'Qaracheh', 'Bahr-e Noor']
   }
 };

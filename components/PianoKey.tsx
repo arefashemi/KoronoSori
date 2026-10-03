@@ -8,9 +8,17 @@ interface PianoKeyProps {
   lang: 'fa' | 'en';
   notation?: 'solfege' | 'alphabet';
   active?: boolean;
+  onClick?: () => void;
 }
 
-export const PianoKey: React.FC<PianoKeyProps> = ({ note, index, lang, notation = 'solfege', active = false }) => {
+export const PianoKey: React.FC<PianoKeyProps> = ({ 
+  note, 
+  index, 
+  lang, 
+  notation = 'solfege', 
+  active = false,
+  onClick 
+}) => {
   if (!note) return null;
 
   // Detect accidental using space-based splitting
@@ -30,54 +38,57 @@ export const PianoKey: React.FC<PianoKeyProps> = ({ note, index, lang, notation 
     : "text-brand-dark dark:text-white";
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+    <motion.button 
+      type="button"
+      onClick={onClick}
+      initial={{ opacity: 0, scale: 0.85, y: 15 }}
       animate={{ 
         opacity: 1, 
-        scale: active ? 1.08 : 1, 
-        y: active ? -4 : 0,
+        scale: active ? 1.05 : 1, 
+        y: active ? -3 : 0,
         boxShadow: active 
-          ? "0 10px 15px -3px rgba(163,230,53,0.3), 0 4px 6px -2px rgba(163,230,53,0.15)"
-          : "0 4px 6px -1px rgba(0,0,0,0.1)"
+          ? "0 14px 25px -4px rgba(211,243,106,0.5), 0 6px 10px -2px rgba(211,243,106,0.3)"
+          : "0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.04)"
       }}
       transition={{ 
         type: "spring",
-        stiffness: 300,
-        damping: 20,
-        delay: active ? 0 : index * 0.05 
+        stiffness: 350,
+        damping: 24,
+        delay: active ? 0 : index * 0.035 
       }}
-      whileHover={{ scale: 1.05, y: -4 }}
-      whileTap={{ scale: 0.95 }}
-      className={`relative flex flex-col w-full aspect-[4/4.3] rounded-xl cursor-default select-none overflow-hidden transition-colors duration-200 ${
+      whileHover={{ scale: 1.04, y: -3 }}
+      whileTap={{ scale: 0.93 }}
+      className={`relative flex flex-col w-full aspect-[4/4.3] rounded-2xl select-none overflow-hidden transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-lime cursor-pointer group ${
         active
           ? "bg-brand-lime dark:bg-lime-400 border-2 border-brand-lime dark:border-lime-400"
           : isAccidental 
-            ? "bg-gradient-to-b from-lime-100 to-lime-200 dark:from-lime-900/40 dark:to-lime-900/60 shadow-[0_3px_0_0_rgba(163,230,53,0.3)] dark:shadow-[0_3px_0_0_rgba(0,0,0,0.3)]" 
+            ? "bg-gradient-to-b from-lime-50 to-lime-100/90 dark:from-lime-950/40 dark:to-lime-900/60 border border-brand-lime/40 dark:border-lime-700/40 shadow-[0_3px_0_0_rgba(163,230,53,0.3)] dark:shadow-[0_3px_0_0_rgba(0,0,0,0.3)]" 
             : "bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-100 dark:border-gray-700 shadow-[0_3px_0_0_rgba(0,0,0,0.05)] dark:shadow-[0_3px_0_0_rgba(0,0,0,0.3)]"
       }`}
+      title={lang === 'fa' ? `پخش نت ${displayBase} ${displayAcc} (درجه ${index + 1})` : `Play note ${displayBase} ${displayAcc} (Degree ${index + 1})`}
     >
       <div className="flex-grow flex items-center justify-center">
-        <span className={`text-xl sm:text-2xl font-black ${textClass}`}>
+        <span className={`text-xl sm:text-2xl font-black transition-transform duration-200 group-hover:scale-105 ${textClass}`}>
           {displayBase}
         </span>
       </div>
 
       {displayAcc ? (
-        <div className={`h-5 flex items-center justify-center ${active ? 'bg-black/10' : 'bg-black/5 dark:bg-white/5'}`}>
-          <span className={`text-[9px] font-black uppercase tracking-widest ${active ? 'text-brand-dark/80' : 'text-brand-dark/60 dark:text-gray-400'}`}>
+        <div className={`h-5 w-full flex items-center justify-center ${active ? 'bg-black/10' : 'bg-black/5 dark:bg-white/5'}`}>
+          <span className={`text-[9px] font-black uppercase tracking-widest ${active ? 'text-brand-dark/90' : 'text-brand-dark/70 dark:text-gray-300'}`}>
             {displayAcc}
           </span>
         </div>
       ) : (
-        <div className="h-5 flex items-center justify-center">
-           <div className={`w-1 h-1 rounded-full ${active ? 'bg-brand-dark' : 'bg-brand-lime dark:bg-lime-500'} opacity-40`}></div>
+        <div className="h-5 w-full flex items-center justify-center">
+           <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-brand-dark' : 'bg-brand-lime dark:bg-lime-500'} opacity-60`}></div>
         </div>
       )}
 
       {/* Index Number */}
-      <span className={`absolute top-2 ${lang === 'fa' ? 'right-2' : 'left-2'} text-[9px] font-black ${active ? 'text-brand-dark/20' : 'text-black/10 dark:text-white/10'}`}>
+      <span className={`absolute top-2 ${lang === 'fa' ? 'right-2.5' : 'left-2.5'} text-[9.5px] font-mono font-black ${active ? 'text-brand-dark/30' : 'text-black/20 dark:text-white/20'}`}>
         {index + 1}
       </span>
-    </motion.div>
+    </motion.button>
   );
 };
