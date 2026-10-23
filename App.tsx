@@ -2,10 +2,9 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react';
 import { PianoKey } from './components/PianoKey';
 import { Metronome } from './components/Metronome';
-import { VaziriModal } from './components/VaziriModal';
-import { AboutModal } from './components/AboutModal';
 import { SupportModal } from './components/SupportModal';
 import { TipsModal } from './components/TipsModal';
+import { InfoHub } from './components/InfoHub';
 import { getScaleNotes } from './utils/musicTheory';
 import { ScaleType, FavoriteScale } from './types';
 import { 
@@ -54,32 +53,6 @@ const App: React.FC = () => {
       return '2.3.0';
     }
   });
-
-  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'update-available' | 'updating' | 'up-to-date' | 'success'>('idle');
-
-  const handleCheckUpdates = useCallback(() => {
-    setUpdateStatus('checking');
-    setTimeout(() => {
-      if (appVersion === '2.3.0') {
-        setUpdateStatus('up-to-date');
-      } else {
-        setUpdateStatus('update-available');
-      }
-    }, 1200);
-  }, [appVersion]);
-
-  const handleApplyUpdate = useCallback(() => {
-    setUpdateStatus('updating');
-    setTimeout(() => {
-      try {
-        localStorage.setItem('koronosori_app_version', '2.3.0');
-      } catch (e) {
-        // Local storage fallback
-      }
-      setAppVersion('2.3.0');
-      setUpdateStatus('success');
-    }, 1600);
-  }, []);
 
   const [favorites, setFavorites] = useState<FavoriteScale[]>(() => {
     try {
@@ -751,67 +724,73 @@ const App: React.FC = () => {
       </AnimatePresence>
 
       <div className={`flex flex-col min-h-screen font-sans transition-colors duration-300 ${darkMode ? 'dark bg-gray-950 text-white' : 'bg-brand-gray text-brand-dark'} p-4 sm:p-6 md:p-8`} dir={lang === 'fa' ? 'rtl' : 'ltr'}>
-        <main className="flex-grow max-w-md mx-auto w-full flex flex-col relative gap-4">
+        <main className="flex-grow max-w-md mx-auto w-full flex flex-col relative gap-3.5 pb-2">
           
           {/* Header Bar */}
-          <div className="w-full flex justify-between items-center mb-2.5 gap-2" dir="ltr">
-            <div className="flex items-center gap-1.5 shrink-0">
+          <div className="w-full flex justify-between items-center gap-2" dir="ltr">
+            {/* Unified Header Buttons Capsule */}
+            <div className="flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm shrink-0">
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setLang(l => l === 'fa' ? 'en' : 'fa')} 
-                className="px-2.5 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[10px] font-black tracking-widest text-brand-dark dark:text-white shrink-0"
+                className="text-[11px] font-black tracking-wider text-brand-dark dark:text-white hover:text-lime-600 dark:hover:text-lime-400 transition-colors cursor-pointer select-none px-0.5"
+                title={lang === 'fa' ? 'تغییر زبان' : 'Change language'}
               >
                 {lang === 'fa' ? 'EN' : 'FA'}
               </motion.button>
+
+              <div className="w-[1px] h-3.5 bg-brand-dark/15 dark:bg-white/15 select-none" />
+
               <motion.button 
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setNotation(n => n === 'solfege' ? 'alphabet' : 'solfege')} 
-                className="px-2.5 py-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-[11px] font-black tracking-wide text-brand-dark dark:text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                className="text-[11px] font-black tracking-tight text-brand-dark dark:text-white hover:text-lime-600 dark:hover:text-lime-400 transition-colors cursor-pointer select-none whitespace-nowrap px-0.5"
                 title={lang === 'fa' ? 'تغییر سیستم نام‌گذاری نت‌ها' : 'Change note naming system'}
               >
-                <svg className="w-3.5 h-3.5 text-brand-dark dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-                <span className="whitespace-nowrap">
-                  {notation === 'solfege' 
-                    ? (lang === 'fa' ? 'دو ر می' : 'Do Re Mi') 
-                    : 'A B C'}
-                </span>
+                {notation === 'solfege' 
+                  ? (lang === 'fa' ? 'دو ر می' : 'Do Re Mi') 
+                  : 'A B C'}
               </motion.button>
-              <motion.button 
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setDarkMode(!darkMode)} 
-                className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white dark:border-gray-700 shadow-sm hover:shadow-md text-brand-dark dark:text-white flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0"
-                title={darkMode ? (lang === 'fa' ? 'حالت روز' : 'Light mode') : (lang === 'fa' ? 'حالت شب' : 'Dark mode')}
-                aria-label="Toggle theme"
-              >
-                {darkMode ? (
-                  /* Sun icon - clean, modern, monochrome */
-                  <svg className="w-4 h-4 text-brand-dark dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+
+              <div className="w-[1px] h-3.5 bg-brand-dark/15 dark:bg-white/15 select-none" />
+
+              <div className="flex items-center gap-2">
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setDarkMode(!darkMode)} 
+                  className="text-brand-dark/80 dark:text-gray-200 hover:text-lime-600 dark:hover:text-lime-400 transition-colors cursor-pointer flex items-center justify-center p-0.5"
+                  title={darkMode ? (lang === 'fa' ? 'حالت روز' : 'Light mode') : (lang === 'fa' ? 'حالت شب' : 'Dark mode')}
+                  aria-label="Toggle theme"
+                >
+                  {darkMode ? (
+                    /* Sun icon - clean, modern, monochrome */
+                    <svg className="w-4 h-4 text-brand-dark dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    /* Moon icon - clean, modern, monochrome */
+                    <svg className="w-4 h-4 text-brand-dark dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
+                </motion.button>
+
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setView(v => v === 'tips' ? 'home' : 'tips')} 
+                  className={`transition-colors cursor-pointer flex items-center justify-center p-0.5 ${
+                    view === 'tips'
+                      ? 'text-amber-500'
+                      : 'text-brand-dark/80 dark:text-gray-200 hover:text-amber-500 dark:hover:text-amber-400'
+                  }`}
+                  title={lang === 'fa' ? 'نکات و ترفندها' : 'Tips & Tricks'}
+                  aria-label="Tips and Tricks"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
-                ) : (
-                  /* Moon icon - clean, modern, monochrome */
-                  <svg className="w-4 h-4 text-brand-dark dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                )}
-              </motion.button>
-              <motion.button 
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setView(v => v === 'tips' ? 'home' : 'tips')} 
-                className={`w-8 h-8 rounded-full backdrop-blur-md border shadow-sm hover:shadow-md flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0 ${
-                  view === 'tips'
-                    ? 'bg-amber-400 border-amber-300 text-gray-950 shadow-amber-400/20'
-                    : 'bg-white/80 dark:bg-gray-800/80 border-white dark:border-gray-700 text-brand-dark dark:text-white hover:text-amber-500 dark:hover:text-amber-400'
-                }`}
-                title={lang === 'fa' ? 'نکات و ترفندها' : 'Tips & Tricks'}
-                aria-label="Tips and Tricks"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </motion.button>
+                </motion.button>
+              </div>
             </div>
 
             <div className="flex flex-col items-end shrink-0">
@@ -827,62 +806,6 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          {(view === 'home' || view === 'metronome' || view === 'favorites') && (
-            <div className="w-full grid grid-cols-3 bg-white/70 dark:bg-gray-900/50 p-1 rounded-2xl border border-white dark:border-gray-800 shadow-sm mb-2.5 shrink-0 transition-colors duration-300 gap-1">
-              <button 
-                onClick={() => setView('home')}
-                className={`h-9 px-1 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none ${
-                  view === 'home' 
-                    ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm' 
-                    : 'text-brand-dark/50 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
-                }`}
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span className="whitespace-nowrap leading-none">{t.calculatorTab}</span>
-              </button>
-              
-              <button 
-                onClick={() => setView('metronome')}
-                className={`h-9 px-1 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none ${
-                  view === 'metronome' 
-                    ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm' 
-                    : 'text-brand-dark/50 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
-                }`}
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="whitespace-nowrap leading-none">{t.metronomeTab}</span>
-              </button>
-
-              <button 
-                onClick={() => setView('favorites')}
-                className={`h-9 px-1 rounded-xl text-[10.5px] sm:text-xs font-black transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer select-none ${
-                  view === 'favorites' 
-                    ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm' 
-                    : 'text-brand-dark/50 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
-                }`}
-              >
-                <svg className={`w-3.5 h-3.5 shrink-0 ${view === 'favorites' ? 'text-amber-400' : 'text-brand-dark/40 dark:text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                </svg>
-                <span className="whitespace-nowrap leading-none">{t.favoritesTab}</span>
-                {favorites.length > 0 && (
-                  <span className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[9px] font-black rounded-full leading-none font-mono tabular-nums shrink-0 ${
-                    view === 'favorites' 
-                      ? 'bg-brand-lime text-brand-dark dark:bg-lime-400 dark:text-brand-dark font-bold' 
-                      : 'bg-brand-dark/15 text-brand-dark dark:bg-white/20 dark:text-white'
-                  }`}>
-                    {favorites.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
-
           <AnimatePresence mode="wait">
             {view === 'home' && (
               <motion.div
@@ -893,19 +816,19 @@ const App: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 className="flex-grow flex flex-col"
               >
-                <div className="flex-grow flex flex-col gap-3.5 py-1">
+                <div className="flex-grow flex flex-col gap-3.5">
                   
-                  {/* Selector Card */}
-                  <section className="bg-brand-lime dark:bg-lime-600/90 p-3.5 rounded-[2rem] shadow-[0_15px_35px_-12px_rgba(211,243,106,0.35)] dark:shadow-none space-y-3 relative overflow-hidden transition-colors duration-300">
+                  {/* Selector Card (Green) */}
+                  <section className="bg-brand-lime dark:bg-lime-600/90 p-4 sm:p-4.5 rounded-3xl shadow-[0_12px_28px_-10px_rgba(211,243,106,0.35)] dark:shadow-none space-y-3 relative overflow-hidden transition-colors duration-300">
                     <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full border-[25px] border-white/20 opacity-40 pointer-events-none"></div>
-                    <p className="text-center text-xs sm:text-sm font-black text-brand-dark/80 dark:text-lime-50 leading-tight whitespace-pre-line px-2">{t.instruction}</p>
+                    <p className="text-center text-xs sm:text-sm font-black text-brand-dark/85 dark:text-lime-50 leading-relaxed whitespace-pre-line px-2">{t.instruction}</p>
      
                     <div className="space-y-3">
                       {/* Dastgah Selector */}
                       <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center justify-between">
-                          <label className="text-brand-dark/70 dark:text-lime-100/80 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
-                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                        <div className="flex items-center justify-between h-4.5">
+                          <label className="text-brand-dark/75 dark:text-lime-100/90 text-[11px] font-black flex items-center gap-1.5 pr-0.5 tracking-wide">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.8} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
                             {t.scaleLabel}
                           </label>
                           <motion.button
@@ -922,7 +845,7 @@ const App: React.FC = () => {
                           <select 
                             value={selectedScaleType} 
                             onChange={(e) => setSelectedScaleType(e.target.value)} 
-                            className="appearance-none w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-md text-brand-dark dark:text-white py-2.5 px-3.5 pe-8 rounded-xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
+                            className="appearance-none w-full h-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md text-brand-dark dark:text-white px-4 pe-9 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
                           >
                             {scaleOptions.map(opt => (
                               <option key={opt.value} value={opt.value}>
@@ -930,8 +853,8 @@ const App: React.FC = () => {
                               </option>
                             ))}
                           </select>
-                          <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-2.5' : 'right-2.5'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-3' : 'right-3'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                             </svg>
                           </div>
@@ -942,15 +865,15 @@ const App: React.FC = () => {
                       <div className="flex gap-3">
                         <div className="w-3/5">
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-brand-dark/70 dark:text-lime-100/80 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
-                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                            <label className="text-brand-dark/75 dark:text-lime-100/90 text-[11px] font-black flex items-center gap-1.5 pr-0.5 tracking-wide h-4.5">
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.8} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
                               {t.rootLabel}
                             </label>
                             <div className="relative">
                               <select 
                                 value={selectedRoot} 
                                 onChange={(e) => setSelectedRoot(e.target.value)} 
-                                className="appearance-none w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-md text-brand-dark dark:text-white py-2.5 px-3.5 pe-8 rounded-xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
+                                className="appearance-none w-full h-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md text-brand-dark dark:text-white px-4 pe-9 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
                               >
                                 {ROOT_OPTIONS.map(opt => (
                                   <option key={opt} value={opt}>
@@ -958,8 +881,8 @@ const App: React.FC = () => {
                                   </option>
                                 ))}
                               </select>
-                              <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-2.5' : 'right-2.5'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-3' : 'right-3'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </div>
@@ -968,15 +891,15 @@ const App: React.FC = () => {
                         </div>
                         <div className="w-2/5">
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-brand-dark/70 dark:text-lime-100/80 text-[10px] font-black flex items-center gap-1.5 pr-1 uppercase tracking-widest">
-                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
+                            <label className="text-brand-dark/75 dark:text-lime-100/90 text-[11px] font-black flex items-center gap-1.5 pr-0.5 tracking-wide h-4.5">
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.8} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
                               {t.accLabel}
                             </label>
                             <div className="relative">
                               <select 
                                 value={selectedAccidental} 
                                 onChange={(e) => setSelectedAccidental(e.target.value)} 
-                                className="appearance-none w-full bg-white/95 dark:bg-gray-900/90 backdrop-blur-md text-brand-dark dark:text-white py-2.5 px-3.5 pe-8 rounded-xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
+                                className="appearance-none w-full h-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md text-brand-dark dark:text-white px-4 pe-9 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-brand-lime/40 outline-none transition-all font-sans text-xs sm:text-sm font-black cursor-pointer hover:bg-white dark:hover:bg-gray-900"
                               >
                                 {ACCIDENTAL_OPTIONS.map(opt => (
                                   <option key={opt} value={opt}>
@@ -984,8 +907,8 @@ const App: React.FC = () => {
                                   </option>
                                 ))}
                               </select>
-                              <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-2.5' : 'right-2.5'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <div className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${lang === 'fa' ? 'left-3' : 'right-3'} flex items-center text-brand-dark/50 dark:text-gray-400`}>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                                 </svg>
                               </div>
@@ -996,8 +919,8 @@ const App: React.FC = () => {
                     </div>
                   </section>
      
-                  {/* Results Section */}
-                  <section className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5 rounded-[2rem] shadow-xl border border-white dark:border-gray-800 flex-grow flex flex-col justify-between transition-colors duration-300">
+                  {/* Results Section Card */}
+                  <section className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-4.5 rounded-3xl shadow-sm border border-white dark:border-gray-800 flex flex-col gap-3.5 transition-colors duration-300">
                     <div className="flex items-center justify-between gap-2.5 pb-3 border-b border-brand-dark/5 dark:border-white/5">
                       {/* Left: Play & Auto Loop Sequence Buttons (Stacked Vertically) */}
                       <div className="shrink-0 flex flex-col gap-1.5 items-center justify-center">
@@ -1120,21 +1043,10 @@ const App: React.FC = () => {
                         </motion.button>
                       </div>
                     </div>
-    
+     
                     {/* Piano Keys Display */}
-                    <div className="pt-2">
-                      {/* Archived for future versions:
-                      <div className="flex items-center justify-between px-1 mb-2">
-                        <span className="text-[10.5px] font-bold text-brand-dark/50 dark:text-gray-400 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-brand-lime animate-pulse"></span>
-                          <span>{lang === 'fa' ? 'نت‌های مقیاس (لمس برای شنیدن تک‌نت):' : 'Scale Notes (Tap to audition note):'}</span>
-                        </span>
-                        <span className="text-[9.5px] font-mono font-bold text-brand-dark/40 dark:text-gray-500">
-                          {notation === 'alphabet' ? 'A–G' : 'دو–سی'}
-                        </span>
-                      </div>
-                      */}
-                      <div className="grid grid-cols-4 gap-2.5">
+                    <div>
+                      <div className="grid grid-cols-4 gap-2 sm:gap-2.5">
                         {resultNotes.map((note, index) => (
                           <PianoKey 
                             key={`${note}-${index}`} 
@@ -1159,152 +1071,6 @@ const App: React.FC = () => {
                         )}
                       </div>
                     </div>
- 
-                    {/* Archived for future versions: Academic Radif Analysis Section
-                    {academicData && (
-                      <button 
-                        onClick={() => setShowAcademic(!showAcademic)}
-                        className="mt-3.5 w-full py-2.5 px-4 rounded-xl border border-brand-dark/5 dark:border-white/5 bg-white/50 dark:bg-gray-900/50 hover:bg-brand-lime/10 dark:hover:bg-lime-500/10 text-xs font-black text-brand-dark/70 dark:text-gray-300 flex items-center justify-between transition-all cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2">
-                          <svg className={`w-3.5 h-3.5 text-brand-lime dark:text-lime-500 transition-transform duration-300 ${showAcademic ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                          </svg>
-                          <span>{lang === 'fa' ? 'تحلیل آکادمیک ردیف دستگاهی' : 'Academic Radif Analysis'}</span>
-                        </span>
-                        <span className="text-[10px] bg-brand-dark/5 dark:bg-white/5 px-2.5 py-0.5 rounded-full text-brand-dark/50 dark:text-gray-400">
-                          {showAcademic ? (lang === 'fa' ? 'بستن' : 'Close') : (lang === 'fa' ? 'مشاهده' : 'View')}
-                        </span>
-                      </button>
-                    )}
- 
-                    {academicData && showAcademic && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 pt-4 border-t border-brand-dark/5 dark:border-white/5 space-y-4"
-                      >
-                        <div className="flex items-center justify-between px-2">
-                          <span className="text-[10px] font-black text-brand-dark/40 dark:text-gray-400 uppercase tracking-[0.15em] flex items-center gap-2">
-                            <svg className="w-3.5 h-3.5 text-brand-lime dark:text-lime-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            {lang === 'fa' ? 'تحلیل ساختار مُدال و دو دانگی (رساله دکتر هومان اسعدی)' : 'Modal & Two-Dang Analysis (Dr. H. Asadi Thesis)'}
-                          </span>
-                          <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full ${
-                            academicData.cycleHomogeneity === 'همگن' 
-                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' 
-                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
-                          }`}>
-                            {lang === 'fa' ? `سیکل ${academicData.cycleHomogeneity}` : `${academicData.cycleHomogeneityEn} Cycle`}
-                          </span>
-                        </div>
- 
-                        <div className={`grid ${academicData.khatemehDegree ? 'grid-cols-4' : 'grid-cols-3'} gap-1.5 px-1`}>
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
-                            <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
-                              {t.shahedLabel}
-                            </span>
-                            <span className="text-xs font-black text-brand-dark dark:text-white">
-                              {resultNotes[academicData.shahedDegree - 1] ? translateNote(resultNotes[academicData.shahedDegree - 1]) : '—'}
-                            </span>
-                          </div>
-
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
-                            <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
-                              {t.istLabel}
-                            </span>
-                            <span className="text-xs font-black text-brand-dark dark:text-white">
-                              {resultNotes[academicData.istDegree - 1] ? translateNote(resultNotes[academicData.istDegree - 1]) : '—'}
-                            </span>
-                          </div>
-
-                          {academicData.khatemehDegree && (
-                            <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
-                              <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
-                                {t.khatemehLabel || (lang === 'fa' ? 'نت خاتمه' : 'Finalis')}
-                              </span>
-                              <span className="text-xs font-black text-brand-dark dark:text-white">
-                                {resultNotes[academicData.khatemehDegree - 1] ? translateNote(resultNotes[academicData.khatemehDegree - 1]) : '—'}
-                              </span>
-                            </div>
-                          )}
-
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-2xl p-2.5 flex flex-col items-center justify-center text-center">
-                            <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider mb-1">
-                              {t.motaghayyerLabel}
-                            </span>
-                            <span className="text-xs font-black text-brand-dark dark:text-white">
-                              {academicData.motaghayyerDegree && resultNotes[academicData.motaghayyerDegree - 1]
-                                ? translateNote(resultNotes[academicData.motaghayyerDegree - 1])
-                                : t.noMotaghayyer}
-                            </span>
-                          </div>
-                        </div>
- 
-                        {dangsData && (
-                          <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-3xl p-4 space-y-3.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5 text-brand-lime dark:text-lime-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16m-7 6h7" />
-                                </svg>
-                                {t.tetrachordLabel}
-                              </span>
-                              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand-lime/20 text-brand-dark dark:bg-lime-500/10 dark:text-lime-300">
-                                {dangsData.type}
-                              </span>
-                            </div>
-
-                            <div className="bg-brand-lime/10 dark:bg-lime-500/10 border border-brand-lime/20 dark:border-lime-500/20 px-3 py-2 rounded-2xl flex items-center justify-between text-xs">
-                              <span className="text-[10px] font-bold text-brand-dark/60 dark:text-gray-400">
-                                {t.dangStructureLabel || (lang === 'fa' ? 'ترکیب دو دانگی' : 'Two-Dang Conjunction')}:
-                              </span>
-                              <span className="font-black text-brand-dark dark:text-lime-300 text-[11px]">
-                                {lang === 'fa' ? academicData.dangsFormulaFa : academicData.dangsFormulaEn}
-                              </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-1 bg-white/40 dark:bg-gray-800/40 p-2.5 rounded-2xl border border-brand-dark/5 dark:border-white/5">
-                                <span className="text-[9px] font-bold text-brand-dark/40 dark:text-gray-500 block">
-                                  {t.firstTetrachord}
-                                </span>
-                                <span className="text-[11px] font-black text-brand-dark dark:text-gray-200 block font-mono" dir="ltr">
-                                  {dangsData.first}
-                                </span>
-                              </div>
-                              <div className="space-y-1 bg-white/40 dark:bg-gray-800/40 p-2.5 rounded-2xl border border-brand-dark/5 dark:border-white/5">
-                                <span className="text-[9px] font-bold text-brand-dark/40 dark:text-gray-500 block">
-                                  {t.secondTetrachord}
-                                </span>
-                                <span className="text-[11px] font-black text-brand-dark dark:text-gray-200 block font-mono" dir="ltr">
-                                  {dangsData.second}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
- 
-                        <div className="bg-brand-dark/[0.02] dark:bg-white/[0.02] border border-brand-dark/5 dark:border-white/5 rounded-3xl p-4 space-y-2.5">
-                          <span className="text-[10px] font-black text-brand-dark/40 dark:text-gray-500 uppercase tracking-wider block">
-                            {t.goushehsLabel}
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(lang === 'fa' ? academicData.goushehs_fa : academicData.goushehs_en).map((gousheh, idx) => (
-                              <span 
-                                key={idx} 
-                                className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-brand-dark/5 dark:border-white/5 text-brand-dark/80 dark:text-gray-300 shadow-sm"
-                              >
-                                {gousheh}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                    */}
                   </section>
 
                   {/* Compact & Sleek User-Friendly Support Banner */}
@@ -1315,7 +1081,7 @@ const App: React.FC = () => {
                     whileTap={{ scale: 0.99 }}
                     onClick={() => setView('support')}
                     dir={lang === 'fa' ? 'rtl' : 'ltr'}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-500/15 via-red-500/10 to-rose-600/15 dark:from-rose-950/45 dark:via-red-950/35 dark:to-rose-900/40 border border-rose-500/30 dark:border-rose-400/25 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                    className="p-4 sm:p-4.5 rounded-3xl bg-gradient-to-r from-rose-500/15 via-red-500/10 to-rose-600/15 dark:from-rose-950/45 dark:via-red-950/35 dark:to-rose-900/40 border border-rose-500/30 dark:border-rose-400/25 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/40 text-rose-500 flex items-center justify-center text-sm shadow-sm shrink-0 group-hover:scale-110 transition-transform">
@@ -1343,6 +1109,7 @@ const App: React.FC = () => {
                 </div>
               </motion.div>
             )}
+
  
             {/* Favorites View */}
             {view === 'favorites' && (
@@ -1355,7 +1122,7 @@ const App: React.FC = () => {
                 className="flex-grow flex flex-col"
               >
                 {favorites.length === 0 ? (
-                  <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-white/70 dark:bg-gray-900/50 backdrop-blur-md rounded-[2.5rem] border border-white dark:border-gray-800 shadow-xl space-y-4">
+                  <div className="flex-grow flex flex-col items-center justify-center text-center p-8 bg-white/70 dark:bg-gray-900/50 backdrop-blur-md rounded-3xl border border-white dark:border-gray-800 shadow-xl space-y-4">
                     <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-3xl">
                       ⭐️
                     </div>
@@ -1369,7 +1136,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-grow flex flex-col gap-4">
+                  <div className="flex-grow flex flex-col gap-3.5">
                     <div className="space-y-3 shrink-0">
                       <div className="flex items-center justify-between gap-2.5 px-1">
                         <span className="text-xs font-black text-brand-dark/60 dark:text-gray-400">
@@ -1687,21 +1454,16 @@ const App: React.FC = () => {
               <Metronome key="metronome" lang={lang} />
             )}
  
-            {/* About Modal View */}
-            {view === 'about' && (
-              <AboutModal 
-                key="about" 
-                lang={lang} 
-                onBack={() => setView('home')} 
-                onOpenSupport={() => setView('support')} 
+            {/* Consolidated InfoHub (About Us, Vaziri, Changelog) */}
+            {(view === 'vaziri' || view === 'about' || view === 'changelog') && (
+              <InfoHub 
+                key="infohub"
+                lang={lang}
+                appVersion={appVersion}
+                defaultSubTab={view === 'vaziri' ? 'vaziri' : view === 'changelog' ? 'changelog' : 'about'}
               />
             )}
- 
-            {/* Col. Alinaqi Vaziri View */}
-            {view === 'vaziri' && (
-              <VaziriModal key="vaziri" lang={lang} onBack={() => setView('home')} />
-            )}
- 
+
             {/* Support View */}
             {view === 'support' && (
               <SupportModal key="support" lang={lang} onBack={() => setView('home')} />
@@ -1710,238 +1472,6 @@ const App: React.FC = () => {
             {/* Tips & Tricks View */}
             {view === 'tips' && (
               <TipsModal key="tips" lang={lang} onBack={() => setView('home')} />
-            )}
- 
-            {/* Updates & Changelog View */}
-            {view === 'changelog' && (
-              <motion.div
-                key="changelog"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white dark:bg-gray-950 p-6 sm:p-8 rounded-[2.5rem] shadow-xl space-y-6 relative border border-gray-100 dark:border-gray-800 flex flex-col"
-              >
-                <div className="absolute top-0 left-0 w-full h-2 bg-brand-lime"></div>
-                
-                <div className="text-center space-y-2">
-                  <div className="w-14 h-14 bg-brand-lime/10 dark:bg-lime-500/10 rounded-2xl flex items-center justify-center mx-auto mb-1">
-                    <span className="text-2xl">✨</span>
-                  </div>
-                  <h2 className="text-2xl font-black text-brand-dark dark:text-white">{t.changelogTitle}</h2>
-                  
-                  {/* Version & Update Card */}
-                  <div className="p-3.5 rounded-2xl bg-brand-gray/50 dark:bg-gray-900/60 border border-brand-dark/5 dark:border-white/5 space-y-3">
-                    <div className="flex justify-between items-center text-xs font-black">
-                      <span className="text-brand-dark/50 dark:text-gray-400">{t.currentVersionLabel}:</span>
-                      <span className="font-mono bg-white dark:bg-gray-800 px-2 py-0.5 rounded-md text-brand-dark dark:text-white shadow-sm">
-                        v{appVersion}
-                      </span>
-                    </div>
- 
-                    {updateStatus === 'idle' && (
-                      <motion.button
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleCheckUpdates}
-                        className="w-full py-2.5 rounded-xl bg-brand-dark dark:bg-white text-white dark:text-brand-dark text-xs font-black shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>{t.checkUpdatesBtn}</span>
-                      </motion.button>
-                    )}
- 
-                    {updateStatus === 'checking' && (
-                      <div className="flex items-center justify-center gap-2 py-2 text-xs font-bold text-brand-dark/70 dark:text-gray-300">
-                        <div className="w-3.5 h-3.5 border-2 border-brand-lime border-t-transparent rounded-full animate-spin"></div>
-                        <span>{t.checkingUpdates}</span>
-                      </div>
-                    )}
- 
-                    {updateStatus === 'up-to-date' && (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black text-center"
-                      >
-                        {t.upToDateMsg}
-                      </motion.div>
-                    )}
- 
-                    {updateStatus === 'update-available' && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-2"
-                      >
-                        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-black text-center">
-                          {t.updateAvailableMsg} (v2.2.0)
-                        </div>
-                        <motion.button
-                          whileTap={{ scale: 0.98 }}
-                          onClick={handleApplyUpdate}
-                          className="w-full py-2.5 rounded-xl bg-brand-lime text-brand-dark text-xs font-black shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          <span>{t.applyUpdateBtn}</span>
-                        </motion.button>
-                      </motion.div>
-                    )}
- 
-                    {updateStatus === 'updating' && (
-                      <div className="space-y-2">
-                        <div className="text-center text-[10px] font-black text-brand-dark/50 dark:text-gray-400 animate-pulse">
-                          {t.updatingMsg}
-                        </div>
-                        <div className="w-full h-1.5 bg-brand-dark/10 dark:bg-white/10 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: '0%' }}
-                            animate={{ width: '100%' }}
-                            transition={{ duration: 1.6 }}
-                            className="h-full bg-brand-lime"
-                          />
-                        </div>
-                      </div>
-                    )}
- 
-                    {updateStatus === 'success' && (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="p-3 rounded-xl bg-emerald-500 text-white text-xs font-black text-center shadow-lg"
-                      >
-                        {t.updateSuccessMsg}
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
- 
-                {/* Scrollable Changelog List */}
-                <div className="flex-grow overflow-y-auto max-h-[250px] space-y-4 pr-1" style={{ scrollbarWidth: 'thin' }}>
-                  {[
-                    {
-                      version: '2.3.0',
-                      date: lang === 'fa' ? 'شهریور ۱۴۰۵' : 'August 2026',
-                      notes: lang === 'fa' ? [
-                        'افزودن مترونوم اختصاصی و فوق‌العاده دقیق با سنتز صوتی بدون تأخیر (Web Audio API)',
-                        'پشتیبانی از میزان‌نماهای پرکاربرد موسیقی ایرانی و غربی (۲/۴، ۳/۴، ۴/۴، ۶/۸، ۵/۸، ۷/۸ و ضرب آزاد)',
-                        'قابلیت تپ تمپو (Tap Tempo) برای تشخیص و تنظیم فوری سرعت با لمس ریتمیک',
-                        'نشانگر بصری ضرب‌ها به همراه آکسان ضرب اول و ۳ نوع صدای زنگ/چوبک/تیک'
-                      ] : [
-                        'Added dedicated high-precision Metronome powered by zero-latency Web Audio API scheduling.',
-                        'Support for common Western and traditional Persian time signatures (2/4, 3/4, 4/4, 6/8, 5/8, 7/8, and free pulse).',
-                        'Tap Tempo feature to instantly detect and adjust BPM by tapping.',
-                        'Visual beat indicators, first-beat accent, and 3 distinct acoustic/digital sound timbres.'
-                      ]
-                    },
-                    {
-                      version: '2.2.0',
-                      date: lang === 'fa' ? 'مرداد ۱۴۰۵' : 'August 2026',
-                      notes: lang === 'fa' ? [
-                        'تمرکز کامل بر ۷ دستگاه اصلی موسیقی اصیل ایرانی (شور، سه‌گاه، چهارگاه، ماهور، همایون، نوا، راست‌پنجگاه)',
-                        'آرشیو موقت ۵ آواز برای بازبینی دقیق علمی و پیشگیری از خطاهای محاسباتی درجات',
-                        'بهینه‌سازی عمیق سرعت و پاسخ‌دهی صوتی با پیاده‌سازی سیستم نگاشت فواصل O(1)',
-                        'بازطراحی مدرن و جذاب صفحه اسپلش (Splash Screen) بر اساس ترندهای روز و زیبایی‌شناسی موسیقی ایرانی'
-                      ] : [
-                        'Dedicated focus exclusively on the 7 primary Persian Dastgahs (Shur, Segah, Chahargah, Mahur, Homayoun, Nava, Rast-Panjgah).',
-                        'Temporarily archived 5 Avazes for further theoretical scrutiny and precision assurance.',
-                        'Optimized audio synthesis engine and interval lookup speed with O(1) direct mapping.',
-                        'Modern and trending Splash Screen redesign inspired by Persian musical aesthetics.'
-                      ]
-                    },
-                    {
-                      version: '2.1.0',
-                      date: lang === 'fa' ? 'تیر ۱۴۰۵' : 'July 2026',
-                      notes: lang === 'fa' ? [
-                        'رفع ابهام دکمه تغییر نام‌گذاری نت‌ها در هدر با افزودن نماد نت (♩)',
-                        'اضافه شدن سیستم تعاملی و هوشمند بررسی و نصب بروزرسانی‌ها با انیمیشن پیشرفت',
-                        'بهبود پایداری کلی رابط کاربری در تبلت‌ها و دستگاه‌های مختلف'
-                      ] : [
-                        'Resolved naming toggle ambiguity in the header by adding a note icon (♩).',
-                        'Added interactive update checking and installation system with progress indicator.',
-                        'Improved overall UI stability across tablets and mobile screens.'
-                      ]
-                    },
-                    {
-                      version: '2.0.0',
-                      date: lang === 'fa' ? 'خرداد ۱۴۰۵' : 'June 2026',
-                      notes: lang === 'fa' ? [
-                        'تغییر اساسی: بازطراحی کامل رابط کاربری با تم لایم و دارک‌مود شیشه‌ای مدرن',
-                        'تغییر اساسی: بازنویسی موتور صوتی با فرکانس‌های دقیق ربع‌پرده‌ای موسیقی ایرانی (Web Audio API)',
-                        'تغییر اساسی: دوزبانه شدن کامل و هوشمند برنامه (پشتیبانی کامل از فارسی و انگلیسی)'
-                      ] : [
-                        'Major: Complete UI redesign with Lime glassmorphism theme and advanced dark mode.',
-                        'Major: Rewrote audio engine for precise microtonal frequencies of Persian classical music.',
-                        'Major: Full bilingual support with instant translation switch (Persian & English).'
-                      ]
-                    },
-                    {
-                      version: '1.5.0',
-                      date: lang === 'fa' ? 'اردیبهشت ۱۴۰۵' : 'May 2026',
-                      notes: lang === 'fa' ? [
-                        'افزودن کیبورد پیانو هوشمند ۲۴ کلیده با علامت‌های عرضی ایرانی (کرن و سری)',
-                        'امکان نواختن مستقیم نت‌ها با استفاده از کیبورد فیزیکی سیستم شما',
-                        'بهبود سرعت پاسخ‌دهی صوتی و به حداقل رساندن لیتنسی صدا'
-                      ] : [
-                        'Added smart 24-key piano keyboard with Persian microtonal symbols (Koron & Sori).',
-                        'Ability to play notes directly using the physical keyboard keys of your device.',
-                        'Improved audio latency and response speed in mobile browsers.'
-                      ]
-                    },
-                    {
-                      version: '1.4.0',
-                      date: lang === 'fa' ? 'اسفند ۱۴۰۴' : 'March 2026',
-                      notes: lang === 'fa' ? [
-                        'اضافه شدن بخش اختصاصی کلنل علینقی وزیری و تئوری موسیقی ۲۴ قسمتی او',
-                        'اضافه شدن بخش حمایت مالی (دکمه دونیت) به منظور پشتیبانی از توسعه مستمر پروژه'
-                      ] : [
-                        'Added dedicated section for Col. Alinaqi Vaziri and his 24-quarter-tone music theory.',
-                        'Added financial support (Donate button) to ensure long-term development of the project.'
-                      ]
-                    },
-                    {
-                      version: '1.0.0',
-                      date: lang === 'fa' ? 'آبان ۱۴۰۴' : 'November 2025',
-                      notes: lang === 'fa' ? [
-                        'تغییر اساسی: انتشار نسخه اولیه اپلیکیشن با پشتیبانی از دستگاه‌های اصلی موسیقی ایران',
-                        'تبدیل هوشمند درجات گام به نت‌های متناظر همراه با ربع‌پرده‌ها'
-                      ] : [
-                        'Major: Initial release of the application supporting main Dastgahs of Persian classical music.',
-                        'Smart conversion of scale degrees to equivalent notes including quarter-tones.'
-                      ]
-                    }
-                  ].map((v) => (
-                    <div key={v.version} className={`border-b border-brand-dark/5 dark:border-white/5 pb-3.5 last:border-none last:pb-0 ${v.version === appVersion ? 'bg-brand-lime/5 dark:bg-lime-500/5 -mx-3 p-3 rounded-2xl' : ''}`}>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-black text-sm text-brand-dark dark:text-white">v{v.version}</span>
-                          {v.version === appVersion && (
-                            <span className="text-[8px] font-black bg-brand-lime text-brand-dark px-1.5 py-0.5 rounded-full uppercase">{t.currentVersionLabel}</span>
-                          )}
-                        </div>
-                        <span className="text-[10px] font-bold text-brand-dark/40 dark:text-gray-500">{v.date}</span>
-                      </div>
-                      <ul className="space-y-1 text-right text-[11px] leading-relaxed text-brand-dark/75 dark:text-gray-300 font-medium" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
-                        {v.notes.map((note, noteIdx) => (
-                          <li key={noteIdx} className="flex items-start gap-1.5">
-                            <span className="text-brand-lime dark:text-lime-500 font-bold mt-0.5">•</span>
-                            <span>{note}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-                
-                <button 
-                  onClick={() => { setView('home'); setUpdateStatus('idle'); }} 
-                  className="w-full py-4 bg-brand-dark dark:bg-white text-white dark:text-brand-dark rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 shrink-0 cursor-pointer"
-                >
-                  {t.backBtn}
-                </button>
-              </motion.div>
             )}
           </AnimatePresence>
 
@@ -1996,31 +1526,120 @@ const App: React.FC = () => {
           </AnimatePresence>
         </main>
 
-        <footer className="text-center py-4 mt-auto">
-          <AnimatePresence>
-            {(view === 'home' || view === 'favorites' || view === 'metronome') && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mb-2"
-              >
-                <button onClick={() => setView('about')} className="text-[10px] font-black text-brand-dark/40 dark:text-gray-600 hover:text-brand-dark dark:hover:text-white transition-colors uppercase tracking-widest cursor-pointer">{t.aboutLink}</button>
-                <span className="text-brand-dark/10 dark:text-gray-800">|</span>
-                <button onClick={() => setView('vaziri')} className="text-[10px] font-black text-brand-dark/40 dark:text-gray-600 hover:text-brand-dark dark:hover:text-white transition-colors uppercase tracking-widest cursor-pointer">{t.vaziriLink}</button>
-                <span className="text-brand-dark/10 dark:text-gray-800">|</span>
-                <button onClick={() => setView('changelog')} className="text-[10px] font-black text-brand-dark/40 dark:text-gray-600 hover:text-brand-dark dark:hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1.5 cursor-pointer">
-                  <span>{t.changelogLink}</span>
-                  {appVersion !== '2.3.0' && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-lime dark:bg-lime-500 animate-pulse"></span>
-                  )}
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div className="w-16 h-1 bg-gray-200 dark:bg-gray-800 rounded-full mx-auto mb-2"></div>
-          <p className="text-[9px] font-black text-brand-dark/20 dark:text-gray-700 uppercase tracking-[0.2em]">{t.footer}</p>
+        {/* Clean, Compact Footer right below content */}
+        <footer className="text-center pt-2 pb-20">
+          <div className="w-12 h-1 bg-gray-200 dark:bg-gray-800 rounded-full mx-auto mb-2 opacity-50"></div>
+          <p className="text-[9px] font-black text-brand-dark/25 dark:text-gray-600 uppercase tracking-[0.2em]">{t.footer}</p>
         </footer>
+
+        {/* Mobile Sticky Bottom Navigation Bar */}
+        <nav 
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-t border-black/5 dark:border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)] transition-colors duration-300"
+          dir={lang === 'fa' ? 'rtl' : 'ltr'}
+          aria-label="Bottom Navigation"
+        >
+          <div className="max-w-md mx-auto px-3 py-1 flex items-center justify-around pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
+            
+            {/* Tab 1: Calculator (Home) */}
+            <button
+              onClick={() => setView('home')}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+                view === 'home'
+                  ? 'text-brand-dark dark:text-white font-black'
+                  : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
+              }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                view === 'home' 
+                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
+                  : 'text-current'
+              }`}>
+                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'home' ? 2.5 : 2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+                {t.calculatorTab}
+              </span>
+            </button>
+
+            {/* Tab 2: Favorites (Directly beside Calculator) */}
+            <button
+              onClick={() => setView('favorites')}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+                view === 'favorites'
+                  ? 'text-brand-dark dark:text-white font-black'
+                  : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
+              }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all duration-200 relative ${
+                view === 'favorites' 
+                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
+                  : 'text-current'
+              }`}>
+                <svg className={`w-5 h-5 shrink-0 ${view === 'favorites' ? 'fill-current' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'favorites' ? 2.5 : 2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+
+                {favorites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 text-[9.5px] font-black rounded-full font-mono tabular-nums flex items-center justify-center bg-rose-500 text-white shadow-xs">
+                    {favorites.length}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+                {t.favoritesTab}
+              </span>
+            </button>
+
+            {/* Tab 3: Metronome */}
+            <button
+              onClick={() => setView('metronome')}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+                view === 'metronome'
+                  ? 'text-brand-dark dark:text-white font-black'
+                  : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
+              }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                view === 'metronome' 
+                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
+                  : 'text-current'
+              }`}>
+                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'metronome' ? 2.5 : 2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+                {t.metronomeTab}
+              </span>
+            </button>
+
+            {/* Tab 4: Unified Info Hub (About Us, Vaziri, Changelog) */}
+            <button
+              onClick={() => setView('vaziri')}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+                (view === 'vaziri' || view === 'about' || view === 'changelog')
+                  ? 'text-brand-dark dark:text-white font-black'
+                  : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
+              }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                (view === 'vaziri' || view === 'about' || view === 'changelog') 
+                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
+                  : 'text-current'
+              }`}>
+                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={(view === 'vaziri' || view === 'about' || view === 'changelog') ? 2.5 : 2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+                {t.vaziriTab}
+              </span>
+            </button>
+
+          </div>
+        </nav>
       </div>
     </>
   );

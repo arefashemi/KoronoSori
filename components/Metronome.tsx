@@ -397,123 +397,153 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.2 }}
-      className="flex-grow flex flex-col gap-3 py-1 select-none"
+      className="flex-grow flex flex-col gap-3.5 select-none"
     >
-      {/* Top Main Section: Fraction Time Signature + BPM Display */}
-      <section className="bg-brand-lime dark:bg-lime-600/90 p-4 sm:p-5 rounded-[2.2rem] shadow-[0_15px_35px_-12px_rgba(211,243,106,0.35)] dark:shadow-none space-y-4 relative overflow-hidden transition-colors duration-300">
-        <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full border-[28px] border-white/20 opacity-40 pointer-events-none"></div>
+      {/* Top Main Section: Precision Tempo & Meter Engine Deck */}
+      <section className="bg-white dark:bg-[#1E1F24] p-4 sm:p-4.5 rounded-3xl shadow-sm border border-black/5 dark:border-white/5 space-y-4 relative overflow-hidden transition-colors duration-300">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-lime to-transparent opacity-90"></div>
 
-        {/* Top Bar: Time Signature Fraction Editor & BPM */}
-        <div className="grid grid-cols-12 gap-3 items-center">
+        {/* Top Control Grid */}
+        <div className="grid grid-cols-12 gap-3 items-stretch">
           
-          {/* Fraction Time Signature Block (کادر کسر میزان با قابلیت ویرایش صورت و مخرج) */}
-          <div className="col-span-5 sm:col-span-4 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md p-3 rounded-2xl shadow-sm flex flex-col items-center justify-center relative border border-white/40 dark:border-white/10">
-            <span className="text-[10px] font-black text-brand-dark/50 dark:text-gray-400 mb-1">
-              {lang === 'fa' ? 'کسر میزان' : 'Time Sig.'}
-            </span>
+          {/* Fraction Time Signature Deck (صورت و مخرج با طراحی مهندسی دقیق) */}
+          <div className="col-span-5 sm:col-span-4 bg-brand-lime/[0.05] dark:bg-brand-lime/[0.04] p-3.5 rounded-2xl flex flex-col items-center justify-between relative border border-brand-lime/30 dark:border-brand-lime/20 shadow-inner">
+            <div className="flex items-center justify-between w-full px-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-brand-dark/65 dark:text-gray-300 flex items-center gap-1">
+                <svg className="w-3 h-3 text-brand-lime shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {lang === 'fa' ? 'کسر میزان' : 'Meter'}
+              </span>
+              <span className="text-[9px] font-black text-brand-dark/40 dark:text-gray-500 font-mono">
+                {numerator}/{denominator}
+              </span>
+            </div>
 
-            {/* Fraction Visual */}
-            <div className="flex flex-col items-center justify-center font-mono">
+            {/* Fraction Steppers */}
+            <div className="flex flex-col items-center justify-center font-mono my-1 w-full">
               {/* Numerator Controls (صورت کسر - تعداد ضرب‌ها) */}
-              <div className="flex items-center gap-1.5">
-                <button
+              <div className="flex items-center justify-between w-full max-w-[120px] px-1">
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
                   onClick={() => setNumerator((n) => Math.max(1, n - 1))}
-                  className="w-5 h-5 rounded-md bg-brand-dark/10 dark:bg-white/10 hover:bg-brand-dark/20 text-brand-dark dark:text-white flex items-center justify-center text-xs font-black cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded-xl bg-white dark:bg-zinc-800 hover:bg-brand-lime hover:text-brand-dark text-brand-dark dark:text-white border border-brand-dark/10 dark:border-white/10 flex items-center justify-center text-xs font-black cursor-pointer transition-colors shadow-sm"
                   title={lang === 'fa' ? 'کاهش ضرب‌ها' : 'Decrease beats'}
                 >
-                  -
-                </button>
-                <span className="text-2xl sm:text-3xl font-black text-brand-dark dark:text-white min-w-[28px] text-center leading-none">
+                  −
+                </motion.button>
+                <span className="text-2xl sm:text-3xl font-black text-brand-dark dark:text-white min-w-[34px] text-center leading-none tracking-tight">
                   {numerator}
                 </span>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
                   onClick={() => setNumerator((n) => Math.min(16, n + 1))}
-                  className="w-5 h-5 rounded-md bg-brand-dark/10 dark:bg-white/10 hover:bg-brand-dark/20 text-brand-dark dark:text-white flex items-center justify-center text-xs font-black cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded-xl bg-white dark:bg-zinc-800 hover:bg-brand-lime hover:text-brand-dark text-brand-dark dark:text-white border border-brand-dark/10 dark:border-white/10 flex items-center justify-center text-xs font-black cursor-pointer transition-colors shadow-sm"
                   title={lang === 'fa' ? 'افزایش ضرب‌ها' : 'Increase beats'}
                 >
                   +
-                </button>
+                </motion.button>
               </div>
 
-              {/* Fraction Divider Line */}
-              <div className="w-16 h-0.5 bg-brand-dark/30 dark:bg-white/30 my-1 rounded-full"></div>
+              {/* Fractional Divider Bar with Lime Glow */}
+              <div className="w-20 h-[2px] bg-gradient-to-r from-transparent via-brand-lime to-transparent my-1.5 rounded-full"></div>
 
-              {/* Denominator Controls (مخرج کسر - ارزش هر ضرب) */}
-              <div className="flex items-center gap-1.5">
-                <button
+              {/* Denominator Controls (مخرج کسر - کشش نت) */}
+              <div className="flex items-center justify-between w-full max-w-[120px] px-1">
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
                   onClick={() => {
                     const valid = [1, 2, 4, 8, 16];
                     const idx = valid.indexOf(denominator);
                     if (idx > 0) setDenominator(valid[idx - 1]);
                   }}
-                  className="w-5 h-5 rounded-md bg-brand-dark/10 dark:bg-white/10 hover:bg-brand-dark/20 text-brand-dark dark:text-white flex items-center justify-center text-xs font-black cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded-xl bg-white dark:bg-zinc-800 hover:bg-brand-lime hover:text-brand-dark text-brand-dark dark:text-white border border-brand-dark/10 dark:border-white/10 flex items-center justify-center text-xs font-black cursor-pointer transition-colors shadow-sm"
                   title={lang === 'fa' ? 'کاهش ارزش ضرب' : 'Change note value'}
                 >
-                  -
-                </button>
-                <span className="text-2xl sm:text-3xl font-black text-brand-dark dark:text-white min-w-[28px] text-center leading-none">
+                  −
+                </motion.button>
+                <span className="text-2xl sm:text-3xl font-black text-brand-dark dark:text-white min-w-[34px] text-center leading-none tracking-tight">
                   {denominator}
                 </span>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
                   onClick={() => {
                     const valid = [1, 2, 4, 8, 16];
                     const idx = valid.indexOf(denominator);
                     if (idx < valid.length - 1) setDenominator(valid[idx + 1]);
                   }}
-                  className="w-5 h-5 rounded-md bg-brand-dark/10 dark:bg-white/10 hover:bg-brand-dark/20 text-brand-dark dark:text-white flex items-center justify-center text-xs font-black cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded-xl bg-white dark:bg-zinc-800 hover:bg-brand-lime hover:text-brand-dark text-brand-dark dark:text-white border border-brand-dark/10 dark:border-white/10 flex items-center justify-center text-xs font-black cursor-pointer transition-colors shadow-sm"
                   title={lang === 'fa' ? 'افزایش ارزش ضرب' : 'Change note value'}
                 >
                   +
-                </button>
+                </motion.button>
               </div>
             </div>
 
-            <span className="text-[9px] font-bold text-brand-dark/60 dark:text-lime-300 mt-1 truncate max-w-full text-center">
+            <div className="px-2 py-0.5 rounded-lg bg-brand-lime/20 dark:bg-brand-lime/15 border border-brand-lime/30 text-[9px] font-black text-brand-dark dark:text-lime-200 truncate max-w-full text-center">
               {denominatorName}
-            </span>
+            </div>
           </div>
 
-          {/* Large BPM Numbers & Term */}
-          <div className="col-span-7 sm:col-span-8 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md p-3.5 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center border border-white/40 dark:border-white/10">
-            <div className="text-4xl sm:text-5xl font-black tracking-tighter text-brand-dark dark:text-white font-mono flex items-center justify-center gap-1.5">
-              <span>{bpm}</span>
-              <span className="text-xs sm:text-sm font-black text-brand-dark/40 dark:text-gray-400 font-sans uppercase">
+          {/* Large BPM Numbers & Italian Classical Term */}
+          <div className="col-span-7 sm:col-span-8 bg-brand-lime/[0.04] dark:bg-brand-lime/[0.03] p-3.5 sm:p-4 rounded-2xl flex flex-col items-center justify-between text-center border border-brand-lime/30 dark:border-brand-lime/20 shadow-inner">
+            <div className="flex items-center justify-between w-full px-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-brand-dark/65 dark:text-gray-300 flex items-center gap-1">
+                <svg className="w-3 h-3 text-brand-lime shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                {lang === 'fa' ? 'سرعت اجرای ضرب' : 'Tempo'}
+              </span>
+              <span className="text-[9.5px] font-black px-2 py-0.5 rounded-full bg-brand-lime/20 dark:bg-brand-lime/15 text-brand-dark dark:text-lime-200 border border-brand-lime/30">
+                {lang === 'fa' ? tempoCategory.fa.split(' ')[0] : tempoCategory.en.split(' ')[0]}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-center gap-2 my-1">
+              <span className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-brand-dark dark:text-white font-mono leading-none">
+                {bpm}
+              </span>
+              <span className="text-xs sm:text-sm font-black text-brand-dark/40 dark:text-gray-400 font-mono tracking-wider">
                 BPM
               </span>
             </div>
-            <p className="text-[11px] font-bold text-brand-dark/70 dark:text-gray-300 truncate max-w-full mt-0.5">
+
+            <p className="text-[11px] font-bold text-brand-dark/70 dark:text-gray-300 truncate max-w-full">
               {lang === 'fa' ? tempoCategory.fa : tempoCategory.en}
             </p>
 
-            {/* Stepper Quick Adjustment */}
-            <div className="flex items-center gap-1 pt-2 w-full justify-center">
+            {/* Micro Stepper Quick Adjustment Buttons */}
+            <div className="flex items-center gap-1.5 pt-2 w-full justify-center">
               {[-5, -1, +1, +5].map((val) => (
-                <button
+                <motion.button
                   key={val}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setBpm((prev) => Math.max(30, Math.min(250, prev + val)))}
-                  className="flex-1 py-1 rounded-lg bg-brand-gray dark:bg-gray-800 text-brand-dark dark:text-white font-mono font-black text-[11px] hover:bg-brand-dark hover:text-white dark:hover:bg-white dark:hover:text-brand-dark transition-colors cursor-pointer"
+                  className="flex-1 py-1.5 rounded-xl bg-white dark:bg-zinc-800 text-brand-dark dark:text-white font-mono font-black text-[11px] border border-brand-dark/10 dark:border-white/10 hover:bg-brand-lime hover:text-brand-dark hover:border-brand-lime transition-all cursor-pointer shadow-sm"
                 >
                   {val > 0 ? `+${val}` : val}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* BPM Range Slider */}
-        <div className="px-1 pt-1">
-          <input
-            type="range"
-            min="30"
-            max="250"
-            value={bpm}
-            onChange={(e) => setBpm(Number(e.target.value))}
-            className="w-full h-2.5 bg-brand-dark/20 dark:bg-black/30 rounded-lg appearance-none cursor-pointer accent-brand-dark dark:accent-white"
-          />
-          <div className="flex justify-between text-[9px] font-black text-brand-dark/60 dark:text-lime-100/60 pt-1 font-mono">
+        {/* BPM High-Fidelity Tactile Slider */}
+        <div className="px-1 pt-1 space-y-1.5">
+          <div className="relative flex items-center">
+            <input
+              type="range"
+              min="30"
+              max="250"
+              value={bpm}
+              onChange={(e) => setBpm(Number(e.target.value))}
+              className="w-full h-2.5 bg-black/10 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-lime/50"
+            />
+          </div>
+          <div className="flex justify-between text-[9px] font-black text-brand-dark/50 dark:text-gray-400 font-mono px-1">
             <span>30</span>
             <span>60</span>
-            <span>90</span>
+            <span className="text-brand-dark dark:text-lime-300 font-bold">90</span>
             <span>120</span>
             <span>160</span>
             <span>200</span>
@@ -522,18 +552,18 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
         </div>
       </section>
 
-      {/* Interactive Beat Tiles Sequencer (کاشی‌های تعاملی ضرب‌ها و سرضرب‌ها) */}
-      <section className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5 rounded-[2.2rem] shadow-xl border border-white dark:border-gray-800 space-y-4 transition-colors duration-300">
+      {/* Interactive Beat Tiles Sequencer (کاشی‌های تعاملی ضرب‌ها با آکسان‌بندی استودیویی) */}
+      <section className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl p-4 sm:p-5 rounded-[2.2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-brand-lime/25 dark:border-brand-lime/20 space-y-4 transition-colors duration-300 relative overflow-hidden">
         
         {/* Header of Tiles */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-brand-lime"></span>
-            <h3 className="text-xs font-black text-brand-dark dark:text-white">
-              {lang === 'fa' ? 'کاشی‌های ضرب و سرضرب‌ها (لمس جهت تغییر):' : 'Interactive Beat Tiles (Tap to change):'}
+            <span className="w-2 h-2 rounded-full bg-brand-lime shadow-[0_0_8px_#d3f36a]"></span>
+            <h3 className="text-xs font-black text-brand-dark dark:text-white tracking-tight">
+              {lang === 'fa' ? 'کاشی‌های ضرب و سرضرب‌ها (لمس برای تغییر):' : 'Interactive Beat Matrix (Tap to cycle):'}
             </h3>
           </div>
-          <span className="text-[10px] font-bold text-brand-dark/50 dark:text-gray-400">
+          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/5 text-brand-dark/60 dark:text-gray-400 font-mono">
             {numerator} {lang === 'fa' ? 'ضرب' : 'beats'}
           </span>
         </div>
@@ -544,23 +574,26 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
             const strength = beatPattern[idx] || 'normal';
             const isActive = isPlaying && currentBeat === idx;
 
-            // Visual Styling based on strength
-            let tileBg = 'bg-brand-gray/80 dark:bg-gray-800/80 border-brand-dark/10 dark:border-white/10 text-brand-dark/70 dark:text-gray-300';
+            let tileBg = 'bg-black/[0.03] dark:bg-white/[0.04] border-black/10 dark:border-white/10 text-brand-dark/75 dark:text-gray-300';
             let label = lang === 'fa' ? 'عادی' : 'Normal';
             let iconMark = '•';
+            let badgeBg = 'bg-black/5 dark:bg-white/5';
 
             if (strength === 'accent') {
-              tileBg = 'bg-amber-400 dark:bg-amber-500 border-amber-500 text-brand-dark shadow-md shadow-amber-500/20';
+              tileBg = 'bg-brand-lime text-brand-dark border-brand-lime shadow-md shadow-brand-lime/25 font-black';
               label = lang === 'fa' ? 'سرضرب' : 'Accent';
               iconMark = '▲';
+              badgeBg = 'bg-black/15 text-brand-dark';
             } else if (strength === 'medium') {
-              tileBg = 'bg-teal-400 dark:bg-teal-500 border-teal-500 text-brand-dark shadow-sm';
+              tileBg = 'bg-amber-400/20 dark:bg-amber-400/15 border-amber-400/50 text-amber-900 dark:text-amber-200 font-bold';
               label = lang === 'fa' ? 'نیمه‌ضرب' : 'Medium';
               iconMark = '◆';
+              badgeBg = 'bg-amber-400/30 text-amber-950 dark:text-amber-100';
             } else if (strength === 'mute') {
-              tileBg = 'bg-transparent border-dashed border-2 border-brand-dark/20 dark:border-white/20 text-brand-dark/30 dark:text-gray-600 opacity-60';
+              tileBg = 'bg-transparent border-dashed border-2 border-black/15 dark:border-white/15 text-brand-dark/30 dark:text-gray-600 opacity-60';
               label = lang === 'fa' ? 'سکوت' : 'Mute';
               iconMark = '✕';
+              badgeBg = 'bg-black/5 text-brand-dark/40';
             }
 
             return (
@@ -568,13 +601,12 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
                 key={idx}
                 whileTap={{ scale: 0.9 }}
                 animate={{
-                  scale: isActive ? 1.08 : 1,
-                  ringWidth: isActive ? 4 : 0,
+                  scale: isActive ? 1.05 : 1,
                 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                 onClick={() => cycleTileStrength(idx)}
                 className={`relative p-2.5 sm:p-3 rounded-2xl border flex flex-col items-center justify-between gap-1 text-center cursor-pointer transition-all ${tileBg} ${
-                  isActive ? 'ring-4 ring-brand-lime shadow-lg scale-105 z-10' : ''
+                  isActive ? 'ring-2 ring-brand-lime shadow-lg scale-105 z-10' : ''
                 }`}
                 title={lang === 'fa' ? `ضرب ${idx + 1}: ${label} (لمس برای تغییر)` : `Beat ${idx + 1}: ${label} (Tap to cycle)`}
               >
@@ -589,7 +621,7 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
                 </span>
 
                 {/* State Label */}
-                <span className="text-[9px] font-black leading-tight tracking-tight">
+                <span className={`text-[9px] font-black leading-tight tracking-tight px-1.5 py-0.5 rounded-md ${badgeBg}`}>
                   {label}
                 </span>
 
@@ -606,44 +638,49 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
         </div>
 
         {/* Legend of Strengths */}
-        <div className="flex items-center justify-around flex-wrap gap-2 text-[10px] font-bold text-brand-dark/60 dark:text-gray-400 pt-1 border-t border-brand-dark/5 dark:border-white/5">
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-md bg-amber-400"></span>
+        <div className="flex items-center justify-around flex-wrap gap-2 text-[10px] font-bold text-brand-dark/65 dark:text-gray-400 pt-1 border-t border-black/5 dark:border-white/5">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-md bg-brand-lime shadow-[0_0_6px_#d3f36a]"></span>
             <span>{lang === 'fa' ? 'سرضرب (آکسان قوی)' : 'Strong Accent'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-md bg-teal-400"></span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-md bg-amber-400"></span>
             <span>{lang === 'fa' ? 'ضرب متوسط' : 'Medium Accent'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-md bg-brand-gray border border-brand-dark/20"></span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-md bg-black/10 dark:bg-white/10"></span>
             <span>{lang === 'fa' ? 'ضرب عادی' : 'Normal Beat'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-md border border-dashed border-brand-dark/40"></span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-md border border-dashed border-black/30 dark:border-white/30"></span>
             <span>{lang === 'fa' ? 'سکوت' : 'Mute'}</span>
           </div>
         </div>
 
-        {/* Quick Rhythm Presets Bar (ریتم‌های پیش‌فرض و ادوار سنتی) */}
-        <div className="pt-2 border-t border-brand-dark/5 dark:border-white/5 space-y-1.5">
-          <span className="text-[10px] font-bold text-brand-dark/50 dark:text-gray-400 block">
-            {lang === 'fa' ? 'الگوهای ریتمیک آماده موسیقی ایران و جهان:' : 'Quick Rhythmic Patterns:'}
-          </span>
+        {/* Quick Rhythm Presets Bar (ریتم‌های پیش‌فرض و ادوار سنتی با استایل قرصی مینیمال) */}
+        <div className="pt-2 border-t border-black/5 dark:border-white/5 space-y-1.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-brand-dark/65 dark:text-gray-300">
+              {lang === 'fa' ? 'الگوهای ریتمیک آماده موسیقی ایران و جهان:' : 'Quick Rhythmic Patterns:'}
+            </span>
+          </div>
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => applyPreset(p)}
-                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black shrink-0 transition-all cursor-pointer ${
-                  numerator === p.numerator && denominator === p.denominator
-                    ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm'
-                    : 'bg-brand-gray/70 dark:bg-gray-800/80 text-brand-dark/70 dark:text-gray-300 hover:bg-brand-lime/30'
-                }`}
-              >
-                {lang === 'fa' ? p.nameFa : p.nameEn}
-              </button>
-            ))}
+            {PRESETS.map((p) => {
+              const isSelected = numerator === p.numerator && denominator === p.denominator;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => applyPreset(p)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-black shrink-0 transition-all cursor-pointer border ${
+                    isSelected
+                      ? 'bg-brand-lime text-brand-dark border-brand-lime shadow-md shadow-brand-lime/25 scale-[1.02]'
+                      : 'bg-black/5 dark:bg-white/5 text-brand-dark/70 dark:text-zinc-300 border-black/5 dark:border-white/5 hover:bg-brand-lime/15 hover:border-brand-lime/30'
+                  }`}
+                >
+                  {lang === 'fa' ? p.nameFa : p.nameEn}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -652,12 +689,12 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
           {/* Main Play / Stop Button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.96 }}
             onClick={toggleMetronome}
-            className={`flex-grow py-4 px-6 rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
+            className={`flex-grow py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
               isPlaying
-                ? 'bg-rose-500 text-white shadow-rose-500/25 hover:bg-rose-600'
-                : 'bg-brand-lime text-brand-dark shadow-brand-lime/25 hover:bg-brand-dark hover:text-white dark:hover:bg-white dark:hover:text-brand-dark'
+                ? 'bg-rose-500 text-white shadow-rose-500/30 hover:bg-rose-600'
+                : 'bg-brand-lime text-brand-dark shadow-[0_6px_20px_rgba(211,243,106,0.35)] hover:bg-brand-dark hover:text-white dark:hover:bg-white dark:hover:text-brand-dark ring-1 ring-brand-lime/50'
             }`}
           >
             <AnimatePresence mode="wait">
@@ -695,10 +732,10 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleTapTempo}
-            className={`shrink-0 px-4 py-4 rounded-2xl border font-black text-xs flex flex-col items-center justify-center gap-0.5 transition-all shadow-sm cursor-pointer ${
+            className={`shrink-0 px-4 py-3 rounded-2xl border font-black text-xs flex flex-col items-center justify-center gap-0.5 transition-all shadow-sm cursor-pointer ${
               tapFlash
-                ? 'bg-brand-lime text-brand-dark border-brand-lime scale-95 shadow-md'
-                : 'bg-brand-gray/60 dark:bg-gray-800/70 border-brand-dark/10 dark:border-white/10 text-brand-dark dark:text-white hover:bg-brand-lime/20'
+                ? 'bg-brand-lime text-brand-dark border-brand-lime scale-95 shadow-md shadow-brand-lime/40'
+                : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-brand-dark dark:text-white hover:bg-brand-lime/20 hover:border-brand-lime/40'
             }`}
             title={lang === 'fa' ? 'چند بار با ریتم دلخواه لمس کنید' : 'Tap repeatedly to set tempo'}
           >
@@ -710,8 +747,8 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
         </div>
 
         {/* Audio Sound Type & Mute Options */}
-        <div className="pt-2 border-t border-brand-dark/5 dark:border-white/5 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1 bg-brand-gray/60 dark:bg-gray-800/80 p-1 rounded-xl">
+        <div className="pt-2 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1 bg-black/[0.04] dark:bg-white/[0.04] p-1 rounded-xl border border-black/5 dark:border-white/5">
             {[
               { id: 'woodblock', label: lang === 'fa' ? 'چوبک (Wood)' : 'Wood' },
               { id: 'beep', label: lang === 'fa' ? 'بوق (Beep)' : 'Beep' },
@@ -720,10 +757,10 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
               <button
                 key={snd.id}
                 onClick={() => setSoundType(snd.id as SoundType)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
                   soundType === snd.id
-                    ? 'bg-brand-dark text-white dark:bg-white dark:text-brand-dark shadow-sm'
-                    : 'text-brand-dark/60 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
+                    ? 'bg-brand-lime text-brand-dark shadow-sm'
+                    : 'text-brand-dark/65 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white'
                 }`}
               >
                 {snd.label}
@@ -733,10 +770,10 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
 
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className={`p-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer border ${
               isMuted
-                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                : 'bg-brand-gray/70 dark:bg-gray-800 text-brand-dark/70 dark:text-gray-300'
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 text-brand-dark/70 dark:text-gray-300 hover:text-brand-dark dark:hover:text-white hover:bg-brand-lime/15'
             }`}
           >
             {isMuted ? (
@@ -749,7 +786,7 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
               </>
             ) : (
               <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-brand-lime" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                 </svg>
                 <span>{lang === 'fa' ? 'صدا فعال' : 'Sound On'}</span>
