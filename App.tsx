@@ -33,6 +33,17 @@ const getScaleCardStyle = (scaleType: string) => {
   return colors[scaleType] || colors['default'];
 };
 
+const pageTransitionVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+};
+
+const pageTransitionConfig = {
+  duration: 0.22,
+  ease: [0.16, 1, 0.3, 1] as const,
+};
+
 const App: React.FC = () => {
   const [selectedRoot, setSelectedRoot] = useState<string>('سل');
   const [selectedAccidental, setSelectedAccidental] = useState<string>('بکار');
@@ -46,12 +57,13 @@ const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [showAcademic, setShowAcademic] = useState(false);
 
-  const [appVersion, setAppVersion] = useState<string>(() => {
+  const [appVersion] = useState<string>(() => {
     try {
-      return localStorage.getItem('koronosori_app_version') || '2.3.0';
+      localStorage.setItem('koronosori_app_version', '1.0.0');
     } catch {
-      return '2.3.0';
+      // Ignore storage errors
     }
+    return '1.0.0';
   });
 
   const [favorites, setFavorites] = useState<FavoriteScale[]>(() => {
@@ -806,14 +818,15 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             {view === 'home' && (
               <motion.div
                 key="home"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={pageTransitionConfig}
                 className="flex-grow flex flex-col"
               >
                 <div className="flex-grow flex flex-col gap-3.5">
@@ -1115,10 +1128,11 @@ const App: React.FC = () => {
             {view === 'favorites' && (
               <motion.div
                 key="favorites"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={pageTransitionConfig}
                 className="flex-grow flex flex-col"
               >
                 {favorites.length === 0 ? (
@@ -1451,27 +1465,66 @@ const App: React.FC = () => {
 
             {/* Metronome View */}
             {view === 'metronome' && (
-              <Metronome key="metronome" lang={lang} />
+              <motion.div
+                key="metronome"
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={pageTransitionConfig}
+                className="flex-grow flex flex-col"
+              >
+                <Metronome lang={lang} />
+              </motion.div>
             )}
  
             {/* Consolidated InfoHub (About Us, Vaziri, Changelog) */}
             {(view === 'vaziri' || view === 'about' || view === 'changelog') && (
-              <InfoHub 
+              <motion.div
                 key="infohub"
-                lang={lang}
-                appVersion={appVersion}
-                defaultSubTab={view === 'vaziri' ? 'vaziri' : view === 'changelog' ? 'changelog' : 'about'}
-              />
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={pageTransitionConfig}
+                className="flex-grow flex flex-col"
+              >
+                <InfoHub 
+                  lang={lang}
+                  appVersion={appVersion}
+                  defaultSubTab={view === 'vaziri' ? 'vaziri' : view === 'changelog' ? 'changelog' : 'about'}
+                />
+              </motion.div>
             )}
 
             {/* Support View */}
             {view === 'support' && (
-              <SupportModal key="support" lang={lang} onBack={() => setView('home')} />
+              <motion.div
+                key="support"
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={pageTransitionConfig}
+                className="flex-grow flex flex-col"
+              >
+                <SupportModal lang={lang} onBack={() => setView('home')} />
+              </motion.div>
             )}
 
             {/* Tips & Tricks View */}
             {view === 'tips' && (
-              <TipsModal key="tips" lang={lang} onBack={() => setView('home')} />
+              <motion.div
+                key="tips"
+                variants={pageTransitionVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={pageTransitionConfig}
+                className="flex-grow flex flex-col"
+              >
+                <TipsModal lang={lang} onBack={() => setView('home')} />
+              </motion.div>
             )}
           </AnimatePresence>
 
@@ -1541,102 +1594,126 @@ const App: React.FC = () => {
           <div className="max-w-md mx-auto px-3 py-1 flex items-center justify-around pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
             
             {/* Tab 1: Calculator (Home) */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => setView('home')}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl cursor-pointer relative ${
                 view === 'home'
                   ? 'text-brand-dark dark:text-white font-black'
                   : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
               }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-                view === 'home' 
-                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
-                  : 'text-current'
-              }`}>
-                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'home' ? 2.5 : 2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
+              <div className="relative p-1.5 rounded-xl flex items-center justify-center">
+                {view === 'home' && (
+                  <motion.div
+                    layoutId="activeBottomTabPill"
+                    className="absolute inset-0 bg-brand-lime dark:bg-lime-400 rounded-xl shadow-xs shadow-brand-lime/40"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <div className={`relative z-10 transition-all duration-200 ${view === 'home' ? 'text-brand-dark scale-105' : 'text-current'}`}>
+                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'home' ? 2.5 : 2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap transition-colors duration-200">
                 {t.calculatorTab}
               </span>
-            </button>
+            </motion.button>
 
             {/* Tab 2: Favorites (Directly beside Calculator) */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => setView('favorites')}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl cursor-pointer relative ${
                 view === 'favorites'
                   ? 'text-brand-dark dark:text-white font-black'
                   : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
               }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-200 relative ${
-                view === 'favorites' 
-                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
-                  : 'text-current'
-              }`}>
-                <svg className={`w-5 h-5 shrink-0 ${view === 'favorites' ? 'fill-current' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'favorites' ? 2.5 : 2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
+              <div className="relative p-1.5 rounded-xl flex items-center justify-center">
+                {view === 'favorites' && (
+                  <motion.div
+                    layoutId="activeBottomTabPill"
+                    className="absolute inset-0 bg-brand-lime dark:bg-lime-400 rounded-xl shadow-xs shadow-brand-lime/40"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <div className={`relative z-10 transition-all duration-200 ${view === 'favorites' ? 'text-brand-dark scale-105' : 'text-current'}`}>
+                  <svg className={`w-5 h-5 shrink-0 ${view === 'favorites' ? 'fill-current' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'favorites' ? 2.5 : 2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </div>
 
                 {favorites.length > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 text-[9.5px] font-black rounded-full font-mono tabular-nums flex items-center justify-center bg-rose-500 text-white shadow-xs">
+                  <span className="absolute -top-1 -right-1 z-20 min-w-[17px] h-[17px] px-1 text-[9.5px] font-black rounded-full font-mono tabular-nums flex items-center justify-center bg-rose-500 text-white shadow-xs">
                     {favorites.length}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap transition-colors duration-200">
                 {t.favoritesTab}
               </span>
-            </button>
+            </motion.button>
 
             {/* Tab 3: Metronome */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => setView('metronome')}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl cursor-pointer relative ${
                 view === 'metronome'
                   ? 'text-brand-dark dark:text-white font-black'
                   : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
               }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-                view === 'metronome' 
-                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
-                  : 'text-current'
-              }`}>
-                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'metronome' ? 2.5 : 2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="relative p-1.5 rounded-xl flex items-center justify-center">
+                {view === 'metronome' && (
+                  <motion.div
+                    layoutId="activeBottomTabPill"
+                    className="absolute inset-0 bg-brand-lime dark:bg-lime-400 rounded-xl shadow-xs shadow-brand-lime/40"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <div className={`relative z-10 transition-all duration-200 ${view === 'metronome' ? 'text-brand-dark scale-105' : 'text-current'}`}>
+                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={view === 'metronome' ? 2.5 : 2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap transition-colors duration-200">
                 {t.metronomeTab}
               </span>
-            </button>
+            </motion.button>
 
             {/* Tab 4: Unified Info Hub (About Us, Vaziri, Changelog) */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => setView('vaziri')}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all cursor-pointer relative ${
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl cursor-pointer relative ${
                 (view === 'vaziri' || view === 'about' || view === 'changelog')
                   ? 'text-brand-dark dark:text-white font-black'
                   : 'text-brand-dark/45 dark:text-gray-400 hover:text-brand-dark dark:hover:text-white font-bold'
               }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-                (view === 'vaziri' || view === 'about' || view === 'changelog') 
-                  ? 'bg-brand-lime text-brand-dark shadow-sm shadow-brand-lime/30 scale-105' 
-                  : 'text-current'
-              }`}>
-                <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={(view === 'vaziri' || view === 'about' || view === 'changelog') ? 2.5 : 2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+              <div className="relative p-1.5 rounded-xl flex items-center justify-center">
+                {(view === 'vaziri' || view === 'about' || view === 'changelog') && (
+                  <motion.div
+                    layoutId="activeBottomTabPill"
+                    className="absolute inset-0 bg-brand-lime dark:bg-lime-400 rounded-xl shadow-xs shadow-brand-lime/40"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <div className={`relative z-10 transition-all duration-200 ${(view === 'vaziri' || view === 'about' || view === 'changelog') ? 'text-brand-dark scale-105' : 'text-current'}`}>
+                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={(view === 'vaziri' || view === 'about' || view === 'changelog') ? 2.5 : 2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap">
+              <span className="text-[10px] mt-0.5 tracking-tight whitespace-nowrap transition-colors duration-200">
                 {t.vaziriTab}
               </span>
-            </button>
+            </motion.button>
 
           </div>
         </nav>

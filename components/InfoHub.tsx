@@ -21,26 +21,29 @@ export const InfoHub: React.FC<InfoHubProps> = ({
 
   const t = TRANSLATIONS[lang];
 
+  // Parse paragraphs for About Us
+  const paragraphs = t.aboutDesc.split('\n').filter((p) => p.trim().length > 0);
+
   const changelogData = [
     {
-      version: '2.3.0',
-      date: lang === 'fa' ? 'شهریور ۱۴۰۵' : 'August 2026',
+      version: '1.0.0',
+      date: lang === 'fa' ? 'آذر ۱۴۰۵' : 'November 2026',
       notes: lang === 'fa' ? [
-        'افزودن نوار ناوبری پایینی اختصاصی (Bottom Navigation Bar) با دسترسی ارگونومیک به تمام بخش‌ها',
-        'قرارگیری هوشمندانه تب نشان‌شده در کنار تب محاسبه‌گر برای دسترسی سریع‌تر',
-        'تجمیع خلاصه، روان و شکیل بخش‌های «درباره ما»، «درباره وزیری» و «نسخه‌ها» در تب چهارم',
-        'طراحی آیکون‌های وکتور مدرن و خطی برای ناوبری زیربخش‌های درباره',
-        'افزودن مترونوم اختصاصی و فوق‌العاده دقیق با سنتز صوتی بدون تأخیر (Web Audio API)'
+        'انتشار رسمی نسخه پایدار اصلی (۱.۰.۰) با یکپارچگی کامل طراحی و عملکرد',
+        'افزودن نوار ناوبری پایینی اختصاصی با انیمیشن کراس‌فید روان بین تمام صفحات',
+        'قرارگیری هوشمندانه تب نشان‌شده در کنار محاسبه‌گر و تجمیع بخش‌های «درباره ما»، «وزیری» و «نسخه‌ها»',
+        'طراحی آیکون‌های وکتور مدرن و یکدست در تمام بخش‌های درباره و حمایت',
+        'افزودن مترونوم اختصاصی و دقیق با سنتز صوتی بدون تأخیر (Web Audio API)'
       ] : [
-        'Dedicated mobile Bottom Navigation Bar for an ergonomic native experience.',
-        'Grouped Favorites tab directly beside Calculator for rapid switching.',
-        'Unified concise, streamlined About Us, About Vaziri, and Changelog in Tab 4.',
-        'Modern line-art vector SVG icons across all info subtabs.',
+        'Official v1.0.0 main stable release with unified design and performance.',
+        'Dedicated mobile Bottom Navigation Bar with smooth cross-fade view transitions.',
+        'Favorites tab beside Calculator and unified About Us, Vaziri, and Changelog in Tab 4.',
+        'Consistent modern line-art vector SVG icons across About and Support views.',
         'High-precision Persian Metronome powered by zero-latency Web Audio API scheduling.'
       ]
     },
     {
-      version: '2.2.0',
+      version: '0.4.0',
       date: lang === 'fa' ? 'مرداد ۱۴۰۵' : 'August 2026',
       notes: lang === 'fa' ? [
         'تمرکز کامل بر ۷ دستگاه اصلی موسیقی اصیل ایرانی',
@@ -53,7 +56,7 @@ export const InfoHub: React.FC<InfoHubProps> = ({
       ]
     },
     {
-      version: '2.1.0',
+      version: '0.3.0',
       date: lang === 'fa' ? 'تیر ۱۴۰۵' : 'July 2026',
       notes: lang === 'fa' ? [
         'طراحی باکس کپسولی مات برای دکمه‌های هدر با تفکیک خطوط عمودی',
@@ -66,7 +69,7 @@ export const InfoHub: React.FC<InfoHubProps> = ({
       ]
     },
     {
-      version: '2.0.0',
+      version: '0.2.0',
       date: lang === 'fa' ? 'خرداد ۱۴۰۵' : 'June 2026',
       notes: lang === 'fa' ? [
         'بازطراحی کامل رابط کاربری با تم لایم و دارک‌مود شیشه‌ای مدرن',
@@ -79,25 +82,20 @@ export const InfoHub: React.FC<InfoHubProps> = ({
       ]
     },
     {
-      version: '1.0.0',
+      version: '0.1.0',
       date: lang === 'fa' ? 'آبان ۱۴۰۴' : 'November 2025',
       notes: lang === 'fa' ? [
-        'انتشار نسخه اولیه اپلیکیشن با پشتیبانی از دستگاه‌های اصلی موسیقی ایران',
+        'انتشار پیش‌نسخه اولیه (آلفا) با پشتیبانی از دستگاه‌های اصلی موسیقی ایران',
         'تبدیل هوشمند درجات گام به نت‌های متناظر همراه با ربع‌پرده‌ها'
       ] : [
-        'Initial release supporting main Dastgahs of Persian classical music.',
+        'Initial alpha release supporting main Dastgahs of Persian classical music.',
         'Smart conversion of scale degrees to equivalent notes including quarter-tones.'
       ]
     }
   ];
 
   return (
-    <motion.div
-      key="info-hub"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="flex-grow flex flex-col gap-3 select-none"
     >
       {/* Top Segmented Sub-Navigation Tabs with Modern SVG Icons */}
@@ -156,111 +154,182 @@ export const InfoHub: React.FC<InfoHubProps> = ({
       <AnimatePresence mode="wait">
         
         {/* ============================================================== */}
-        {/* SUB-TAB 1: درباره ما (ABOUT US - CONCISE & REFINED)           */}
+        {/* SUB-TAB 1: درباره ما (ABOUT US - DETAILED & COMPREHENSIVE)    */}
         {/* ============================================================== */}
         {activeTab === 'about' && (
           <motion.section
             key="about-subtab"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
-            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl shadow-sm border border-white dark:border-gray-800 space-y-3.5"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5.5 rounded-3xl shadow-sm border border-white dark:border-gray-800 space-y-4"
           >
             {/* Header */}
-            <div className="text-center space-y-1 border-b border-brand-dark/5 dark:border-white/5 pb-2.5">
-              <h3 className="text-lg sm:text-xl font-black text-brand-dark dark:text-white tracking-tight">
+            <div className="text-center space-y-1.5 border-b border-brand-dark/5 dark:border-white/5 pb-3">
+              <h3 className="text-xl sm:text-2xl font-black text-brand-dark dark:text-white tracking-tight">
                 {t.aboutTitle}
               </h3>
-              <div className="inline-flex items-center justify-center gap-2 px-2.5 py-0.5 rounded-full bg-brand-gray/60 dark:bg-gray-800/60 border border-brand-dark/5 dark:border-white/5">
+              <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-brand-gray/60 dark:bg-gray-800/60 border border-brand-dark/5 dark:border-white/5">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-lime"></span>
-                <span className="text-[10.5px] font-bold text-brand-dark/60 dark:text-gray-300">
-                  {lang === 'fa' ? 'روایت عدد و نغمه در موسیقی دستگاهی ایران' : 'Mathematics & Melody in Persian Dastgahs'}
+                <span className="text-[11px] font-bold text-brand-dark/60 dark:text-gray-300">
+                  {lang === 'fa' ? 'روایتی از عدد و نغمه در موسیقی دستگاهی ایران' : 'Mathematics & Melody in Persian Dastgahs'}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-lime"></span>
               </div>
             </div>
 
-            {/* Concise Content Cards */}
-            <div className="space-y-2.5">
-              
-              {/* 1. Core Identity & Mission */}
-              <div className="p-3.5 bg-gradient-to-br from-white via-brand-gray/20 to-brand-lime/10 dark:from-gray-800 dark:via-gray-800/90 dark:to-lime-950/20 rounded-2xl border border-brand-dark/10 dark:border-white/10 shadow-xs space-y-1">
-                <div className="flex items-center gap-1.5 text-brand-dark dark:text-white font-black text-xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-lime"></span>
-                  <span>{lang === 'fa' ? 'هویت و رسالت برنامه' : 'Identity & Mission'}</span>
-                </div>
-                <p className="text-xs leading-relaxed text-brand-dark/85 dark:text-gray-200 text-justify">
-                  {lang === 'fa'
-                    ? 'کُرنوسُری ابزاری دقیق، تخصصی و کاملاً رایگان است که برای محاسبه درجات، فواصل و ساختار مدال هفت دستگاه اصلی موسیقی ایرانی طراحی شده تا پلی میان تکنولوژی روز و اصالت موسیقی دستگاهی باشد.'
-                    : 'Koronosori is a precise, dedicated, and free tool crafted to calculate scale degrees, intervals, and modal structures of the seven Persian Dastgahs, bridging modern technology with classical heritage.'}
-                </p>
-              </div>
+            {/* Structured Content Grid (Complete & Unabridged) */}
+            <div className="space-y-3 pt-1">
+              {paragraphs.map((paragraph, idx) => {
+                const cleanText = paragraph.startsWith('• ') ? paragraph.substring(2) : paragraph;
+                const isSupervisor = cleanText.includes('@arefashemi');
+                const isAi = cleanText.includes('هوش مصنوعی') || cleanText.includes('Artificial Intelligence') || cleanText.includes('AI');
+                const isAppreciation = cleanText.includes('فاضل مستخدمین') || cleanText.includes('Fazel');
+                const isHistorical = cleanText.includes('علینقی') || cleanText.includes('Vaziri');
+                const isPrimaryIntro = idx === 0;
 
-              {/* 2. Supervisor & Direct Connect Links */}
-              <div className="p-3.5 bg-gradient-to-br from-brand-lime/20 via-brand-lime/10 to-transparent dark:from-lime-950/40 dark:via-lime-900/20 dark:to-transparent rounded-2xl border border-brand-lime/40 dark:border-lime-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-xs">
-                <div className="flex items-center gap-2 text-xs font-bold text-brand-dark dark:text-gray-100">
-                  <span className="w-6 h-6 rounded-lg bg-brand-dark text-white dark:bg-white dark:text-brand-dark flex items-center justify-center text-xs font-black shrink-0">
-                    ✓
-                  </span>
-                  <div className="leading-tight flex flex-wrap items-center gap-1">
-                    <span>{lang === 'fa' ? 'ناظر فنی و کیفی: عارف هاشمی راد' : 'Technical Supervisor: Aref Hashemi Rad'}</span>
-                    <a
-                      href="https://t.me/arefashemi"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      dir="ltr"
-                      className="text-blue-600 dark:text-blue-400 hover:underline font-black px-1.5 py-0.5 rounded-md bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40 text-[10.5px]"
+                // 1. Technical & Quality Supervisor Card with direct social links
+                if (isSupervisor) {
+                  const parts = cleanText.split('@arefashemi');
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 bg-gradient-to-br from-brand-lime/25 via-brand-lime/10 to-transparent dark:from-lime-950/40 dark:via-lime-900/20 dark:to-transparent rounded-2xl border border-brand-lime/40 dark:border-lime-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs transition-all"
                     >
-                      @arefashemi
-                    </a>
+                      <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-brand-dark dark:text-gray-100">
+                        <span className="w-7 h-7 rounded-xl bg-brand-dark text-white dark:bg-white dark:text-brand-dark flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
+                          ✓
+                        </span>
+                        <div className="leading-relaxed flex flex-wrap items-center gap-1.5">
+                          <span>{parts[0].trim()}</span>
+                          <a
+                            href="https://t.me/arefashemi"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            dir="ltr"
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-black inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/40"
+                          >
+                            <span>@arefashemi</span>
+                          </a>
+                          {parts[1] && <span>{parts[1].trim()}</span>}
+                        </div>
+                      </div>
+
+                      {/* Supervisor Social Connect Links */}
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <motion.a
+                          href="https://t.me/arefashemi"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="h-8 px-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-700/30 flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors shadow-xs text-xs font-bold"
+                          title="Telegram"
+                        >
+                          <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.285-.346-.09l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.498-.185.938.11.725.993z"/>
+                          </svg>
+                          <span className="text-[11px] font-sans">Telegram</span>
+                        </motion.a>
+
+                        <motion.a
+                          href="https://instagram.com/arefashemi"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="h-8 px-2.5 rounded-xl bg-pink-50 dark:bg-pink-900/30 border border-pink-200/50 dark:border-pink-700/30 flex items-center gap-1.5 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors shadow-xs text-xs font-bold"
+                          title="Instagram"
+                        >
+                          <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                          </svg>
+                          <span className="text-[11px] font-sans">Instagram</span>
+                        </motion.a>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // 2. AI Technology Card
+                if (isAi) {
+                  return (
+                    <div
+                      key={idx}
+                      className="p-3.5 sm:p-4 bg-brand-gray/50 dark:bg-gray-800/50 rounded-2xl border border-brand-dark/5 dark:border-white/5 flex items-center gap-3 text-xs sm:text-sm font-medium text-brand-dark/80 dark:text-gray-300 shadow-xs"
+                    >
+                      <span className="w-7 h-7 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0 font-bold">
+                        ✨
+                      </span>
+                      <p className="leading-relaxed font-normal">{cleanText}</p>
+                    </div>
+                  );
+                }
+
+                // 3. Primary Introduction / Core Identity Card
+                if (isPrimaryIntro) {
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 sm:p-4.5 bg-gradient-to-br from-white via-brand-gray/20 to-brand-lime/10 dark:from-gray-800 dark:via-gray-800/90 dark:to-lime-950/20 rounded-2xl border border-brand-dark/10 dark:border-white/10 shadow-xs space-y-1.5"
+                    >
+                      <div className="flex items-center gap-2 text-brand-dark dark:text-white font-black text-xs sm:text-sm">
+                        <span className="w-2 h-2 rounded-full bg-brand-lime"></span>
+                        <span>{lang === 'fa' ? 'هویت و رسالت' : 'Identity & Mission'}</span>
+                      </div>
+                      <p className="text-xs sm:text-sm leading-relaxed text-brand-dark/85 dark:text-gray-200 text-justify font-normal">
+                        {cleanText}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // 4. Appreciation / Origins Card
+                if (isAppreciation) {
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 space-y-1.5 text-justify text-xs sm:text-sm leading-relaxed text-amber-950 dark:text-amber-200/90 shadow-xs"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-amber-800 dark:text-amber-300">
+                        <span>🌱</span>
+                        <span>{lang === 'fa' ? 'قدردانی و پیشینه' : 'Acknowledgments & Origins'}</span>
+                      </div>
+                      <p className="font-normal">{cleanText}</p>
+                    </div>
+                  );
+                }
+
+                // 5. Historical Inspiration / Vaziri Card
+                if (isHistorical) {
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-white/80 dark:bg-gray-800/80 border border-brand-dark/10 dark:border-white/10 space-y-1.5 text-justify text-xs sm:text-sm leading-relaxed text-brand-dark/85 dark:text-gray-200 shadow-xs"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-brand-dark dark:text-lime-300">
+                        <span>🎻</span>
+                        <span>{lang === 'fa' ? 'الهام از مکتب وزیری' : 'Inspired by Vaziri’s School'}</span>
+                      </div>
+                      <p className="font-normal">{cleanText}</p>
+                    </div>
+                  );
+                }
+
+                // Standard Content Card
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-2xl bg-white/70 dark:bg-gray-800/70 border border-brand-dark/5 dark:border-white/5 space-y-1 text-justify text-xs sm:text-sm leading-relaxed text-brand-dark/80 dark:text-gray-300 shadow-xs"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-dark/40 dark:bg-gray-400 mt-2 shrink-0"></span>
+                      <p className="font-normal">{cleanText}</p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
-                  <motion.a
-                    href="https://t.me/arefashemi"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="h-7 px-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200/50 dark:border-blue-700/30 flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors shadow-xs text-[10.5px] font-bold"
-                  >
-                    <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.285-.346-.09l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.498-.185.938.11.725.993z"/>
-                    </svg>
-                    <span>تلگرام</span>
-                  </motion.a>
-
-                  <motion.a
-                    href="https://instagram.com/arefashemi"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="h-7 px-2.5 rounded-xl bg-pink-50 dark:bg-pink-900/30 border border-pink-200/50 dark:border-pink-700/30 flex items-center gap-1 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors shadow-xs text-[10.5px] font-bold"
-                  >
-                    <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                    </svg>
-                    <span>اینستاگرام</span>
-                  </motion.a>
-                </div>
-              </div>
-
-              {/* 3. Acknowledgments & AI Tech */}
-              <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 space-y-1 text-justify text-xs leading-relaxed text-amber-950 dark:text-amber-200/90 shadow-xs">
-                <div className="flex items-center gap-1.5 font-bold text-xs text-amber-800 dark:text-amber-300">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
-                  <span>{lang === 'fa' ? 'پیشینه و سپاسگزاری' : 'Origins & Acknowledgments'}</span>
-                </div>
-                <p>
-                  {lang === 'fa'
-                    ? 'ایده اولیه این ابزار پیش‌تر به همت آقای فاضل مستخدمین حسینی طراحی شده بود که انگیزه‌بخش آغاز این مسیر گردید. این نسخه با به‌کارگیری هوش مصنوعی توسعه یافته است.'
-                    : 'The initial concept was previously created by Mr. Fazel Mostakhdemin Hosseini, inspiring our journey. This edition is powered by Artificial Intelligence.'}
-                </p>
-              </div>
-
+                );
+              })}
             </div>
           </motion.section>
         )}
@@ -271,10 +340,10 @@ export const InfoHub: React.FC<InfoHubProps> = ({
         {activeTab === 'vaziri' && (
           <motion.section
             key="vaziri-subtab"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl shadow-sm border border-white dark:border-gray-800 space-y-3.5"
           >
             {/* Header Title */}
@@ -358,10 +427,10 @@ export const InfoHub: React.FC<InfoHubProps> = ({
         {activeTab === 'changelog' && (
           <motion.section
             key="changelog-subtab"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl shadow-sm border border-white dark:border-gray-800 space-y-3.5"
           >
             {/* Version Header Card */}
@@ -430,6 +499,6 @@ export const InfoHub: React.FC<InfoHubProps> = ({
         )}
 
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };

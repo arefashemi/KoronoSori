@@ -392,11 +392,7 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
   }, [denominator, lang]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.2 }}
+    <div
       className="flex-grow flex flex-col gap-3.5 select-none"
     >
       {/* Top Main Section: Precision Tempo & Meter Engine Deck */}
@@ -795,6 +791,6 @@ export const Metronome: React.FC<MetronomeProps> = ({ lang }) => {
           </button>
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 };
